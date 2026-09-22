@@ -76,5 +76,4 @@ Thumbs.db
 
 # Ignore generated report files
 backend/reports/
-reports/
 *.pdf
