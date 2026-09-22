@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+COPY pyproject.toml README.md ./
+RUN pip install --no-cache-dir --prefix=/install .
 
 # Final Production Stage
 FROM python:3.11-slim
