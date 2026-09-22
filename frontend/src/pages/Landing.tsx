@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   TrendingDown,
   DollarSign,
@@ -63,16 +64,30 @@ export const Landing: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-zinc-100 font-sans selection:bg-slate-300 dark:selection:bg-zinc-700 selection:text-slate-900 dark:selection:text-white relative overflow-hidden transition-colors duration-200">
       {/* Subtle Ambient Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-gradient-to-b from-slate-200/40 via-slate-100/10 dark:from-zinc-800/20 dark:via-zinc-900/10 to-transparent blur-3xl pointer-events-none -z-10" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.2, ease: 'easeOut' }}
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[550px] bg-gradient-to-b from-sky-400/15 via-blue-500/10 dark:from-sky-500/10 dark:via-blue-600/5 to-transparent blur-3xl pointer-events-none -z-10"
+      />
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-slate-200/80 dark:bg-[#09090b]/90 dark:border-zinc-800/80 shadow-sm transition-colors">
+      <motion.header
+        initial={{ y: -25, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-slate-200/80 dark:bg-[#09090b]/90 dark:border-zinc-800/80 shadow-sm transition-colors"
+      >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 dark:bg-[#141417] dark:border-zinc-800 p-2.5 flex items-center justify-center shadow-sm">
+            <motion.div
+              whileHover={{ rotate: [0, -10, 10, 0] }}
+              transition={{ duration: 0.5 }}
+              className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 dark:bg-[#141417] dark:border-zinc-800 p-2.5 flex items-center justify-center shadow-sm"
+            >
               <TrendingDown className="w-5 h-5 text-slate-800 dark:text-zinc-200" />
-            </div>
+            </motion.div>
             <div>
               <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                 AWS Cost Intelligence
@@ -109,9 +124,11 @@ export const Landing: React.FC = () => {
             >
               Sign In
             </button>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               onClick={handleDemoAccess}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-md transition-all cursor-pointer"
             >
               {demoLoading ? (
                 <div className="w-4 h-4 border-2 border-white dark:!border-zinc-950 border-t-transparent rounded-full animate-spin" />
@@ -121,70 +138,104 @@ export const Landing: React.FC = () => {
                   <ArrowRight className="w-4 h-4 text-white dark:!text-zinc-950" />
                 </>
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* HERO SECTION */}
       <section className="relative pt-20 pb-24 px-6 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-200/80 border border-slate-300 text-slate-800 dark:bg-zinc-800/80 dark:border-zinc-700 dark:text-zinc-300 text-xs font-semibold mb-8 shadow-sm">
+        {/* Animated Badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.88, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-200/80 border border-slate-300 text-slate-800 dark:bg-zinc-800/80 dark:border-zinc-700 dark:text-zinc-300 text-xs font-semibold mb-8 shadow-sm"
+        >
           <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
           <span>Next-Generation Multi-Tenant FinOps Platform</span>
-        </div>
+        </motion.div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-4xl mx-auto leading-[1.15]">
+        {/* Animated Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-4xl mx-auto leading-[1.15]"
+        >
           Master AWS Cloud Spend with{' '}
           <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-800 dark:from-zinc-100 dark:via-zinc-300 dark:to-zinc-400 bg-clip-text text-transparent">
             Precision Intelligence & Automation
           </span>
-        </h1>
+        </motion.h1>
 
-        <p className="mt-6 text-lg sm:text-xl text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+        {/* Animated Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-6 text-lg sm:text-xl text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed"
+        >
           Unify multi-account AWS spending, detect cost anomalies in real-time, execute 11+ automated optimization rules, and maintain 100% financial precision.
-        </p>
+        </motion.p>
 
         {/* CTA Button Row */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <motion.button
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate('/login')}
-            className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
+            className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-lg transition-all flex items-center justify-center gap-3 cursor-pointer"
           >
             <span>Access Platform Console</span>
             <ChevronRight className="w-5 h-5 text-white dark:!text-zinc-950" />
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleDemoAccess}
             className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 dark:text-white dark:bg-[#18181b] dark:hover:bg-zinc-800 dark:border-zinc-700 shadow-sm transition-all flex items-center justify-center gap-3 cursor-pointer"
           >
             <Sparkles className="w-5 h-5 text-amber-500" />
             <span>Launch Live Demo</span>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Key Platform Highlights Row */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
-          <div className="p-4 rounded-xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm">
-            <div className="text-2xl font-bold text-slate-900 dark:text-zinc-100">100%</div>
-            <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">Financial Precision (Decimal)</div>
-          </div>
-          <div className="p-4 rounded-xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm">
-            <div className="text-2xl font-bold text-slate-900 dark:text-zinc-100">11+</div>
-            <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">Automated FinOps Rules</div>
-          </div>
-          <div className="p-4 rounded-xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm">
-            <div className="text-2xl font-bold text-slate-900 dark:text-zinc-100">Multi-Tenant</div>
-            <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">Zero-Trust Isolation</div>
-          </div>
-          <div className="p-4 rounded-xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm">
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Real-Time</div>
-            <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">Anomaly Spike Alerts</div>
-          </div>
+          {[
+            { metric: '100%', label: 'Financial Precision (Decimal)', color: 'text-slate-900 dark:text-zinc-100' },
+            { metric: '11+', label: 'Automated FinOps Rules', color: 'text-slate-900 dark:text-zinc-100' },
+            { metric: 'Multi-Tenant', label: 'Zero-Trust Isolation', color: 'text-slate-900 dark:text-zinc-100' },
+            { metric: 'Real-Time', label: 'Anomaly Spike Alerts', color: 'text-emerald-600 dark:text-emerald-400' },
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 22, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              transition={{ duration: 0.5, delay: 0.55 + index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="p-4 rounded-xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className={`text-2xl font-bold ${item.color}`}>{item.metric}</div>
+              <div className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">{item.label}</div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Dashboard Graphic Mockup Container */}
-        <div className="mt-14 relative rounded-2xl p-2 bg-slate-200 border border-slate-300 dark:bg-[#141417] dark:border-zinc-800 shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 35, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-14 relative rounded-2xl p-2 bg-slate-200 border border-slate-300 dark:bg-[#141417] dark:border-zinc-800 shadow-2xl"
+        >
           <div className="bg-white border border-slate-200 dark:bg-[#09090b] dark:border-zinc-800 rounded-xl overflow-hidden p-6 text-left">
             <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-200 dark:border-zinc-800">
               <div className="flex items-center gap-2">
@@ -221,11 +272,18 @@ export const Landing: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* FINOPS ROI & INTERACTIVE CALCULATOR SECTION (ID: roi) */}
-      <section id="roi" className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20">
+      <motion.section
+        id="roi"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20"
+      >
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-200 border border-slate-300 text-slate-800 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 text-xs font-semibold mb-4">
             <Calculator className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300" />
@@ -384,10 +442,17 @@ export const Landing: React.FC = () => {
             </p>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* CORE CAPABILITIES / FEATURES SECTION */}
-      <section id="features" className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20">
+      <motion.section
+        id="features"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20"
+      >
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400 mb-2">
             Complete FinOps Tooling
@@ -401,76 +466,65 @@ export const Landing: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Card 1 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <BarChart3 className="w-6 h-6" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Multi-Period Spend Analytics</h4>
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Track 7d, 14d, 30d, 90d, MTD and custom range spend with interactive line, bar, donut, and scatter visualizations.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">11+ Automated Optimization Rules</h4>
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Instant detection of unattached EBS volumes, idle EC2 instances, over-provisioned RDS databases, and obsolete snapshots.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Bell className="w-6 h-6" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Anomaly Spikes & Multi-Channel Alerts</h4>
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Detect sudden cost spikes with statistical thresholding and broadcast notifications to Slack, Email, PagerDuty, or Webhooks.
-            </p>
-          </div>
-
-          {/* Card 4 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Building2 className="w-6 h-6" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Enterprise Multi-Tenancy & RBAC</h4>
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Isolated organization boundaries, granular role permissions (OWNER, ADMIN, ANALYST), secure member invitations, and audit logs.
-            </p>
-          </div>
-
-          {/* Card 5 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Globe2 className="w-6 h-6" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Multi-Account & Region Visibility</h4>
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Aggregate cost breakdowns across Payer/Linked accounts, global AWS regions, and specific service categories.
-            </p>
-          </div>
-
-          {/* Card 6 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <FileText className="w-6 h-6" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Executive Reports & Exports</h4>
-            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Generate executive HTML scorecards and itemized CSV spend reports on demand or via scheduled recurring background jobs.
-            </p>
-          </div>
+          {[
+            {
+              icon: <BarChart3 className="w-6 h-6" />,
+              title: "Multi-Period Spend Analytics",
+              description: "Track 7d, 14d, 30d, 90d, MTD and custom range spend with interactive line, bar, donut, and scatter visualizations."
+            },
+            {
+              icon: <Zap className="w-6 h-6" />,
+              title: "11+ Automated Optimization Rules",
+              description: "Instant detection of unattached EBS volumes, idle EC2 instances, over-provisioned RDS databases, and obsolete snapshots."
+            },
+            {
+              icon: <Bell className="w-6 h-6" />,
+              title: "Anomaly Spikes & Multi-Channel Alerts",
+              description: "Detect sudden cost spikes with statistical thresholding and broadcast notifications to Slack, Email, PagerDuty, or Webhooks."
+            },
+            {
+              icon: <Building2 className="w-6 h-6" />,
+              title: "Enterprise Multi-Tenancy & RBAC",
+              description: "Isolated organization boundaries, granular role permissions (OWNER, ADMIN, ANALYST), secure member invitations, and audit logs."
+            },
+            {
+              icon: <Globe2 className="w-6 h-6" />,
+              title: "Multi-Account & Region Visibility",
+              description: "Aggregate cost breakdowns across Payer/Linked accounts, global AWS regions, and specific service categories."
+            },
+            {
+              icon: <FileText className="w-6 h-6" />,
+              title: "Executive Reports & Exports",
+              description: "Generate executive HTML scorecards and itemized CSV spend reports on demand or via scheduled recurring background jobs."
+            }
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ y: -6, scale: 1.01 }}
+              transition={{ duration: 0.25 }}
+              className="p-6 rounded-2xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800/90 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                {feature.icon}
+              </div>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{feature.title}</h4>
+              <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* OPTIMIZATION ENGINE SECTION (ID: optimization) */}
-      <section id="optimization" className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20">
+      <motion.section
+        id="optimization"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-4">
@@ -549,10 +603,17 @@ export const Landing: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ARCHITECTURE & SECURITY SECTION (ID: architecture) */}
-      <section id="architecture" className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20">
+      <motion.section
+        id="architecture"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="py-20 px-6 max-w-7xl mx-auto border-t border-slate-200 dark:border-zinc-800/80 scroll-mt-20"
+      >
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400 mb-2">
             Enterprise Architecture
@@ -587,10 +648,16 @@ export const Landing: React.FC = () => {
             </p>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* BOTTOM CTA BANNER */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="py-20 px-6 max-w-7xl mx-auto"
+      >
         <div className="rounded-3xl bg-white border border-slate-200 dark:bg-[#121215] dark:border-zinc-800 p-10 sm:p-14 text-center relative overflow-hidden shadow-2xl">
           <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
             Ready to Optimize Your AWS Cloud Infrastructure?
@@ -600,21 +667,25 @@ export const Landing: React.FC = () => {
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => navigate('/login')}
-              className="px-8 py-3.5 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-lg transition-all hover:scale-105 cursor-pointer"
+              className="px-8 py-3.5 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-lg transition-all cursor-pointer"
             >
               Sign In to Platform
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.96 }}
               onClick={handleDemoAccess}
               className="px-8 py-3.5 rounded-xl text-base font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 dark:text-white dark:bg-[#18181b] dark:hover:bg-zinc-800 dark:border-zinc-700 transition-all cursor-pointer"
             >
               Explore Live Demo Mode
-            </button>
+            </motion.button>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* FOOTER */}
       <footer className="py-12 border-t border-slate-200 dark:border-zinc-800/80 text-xs text-slate-500 dark:text-zinc-500">
