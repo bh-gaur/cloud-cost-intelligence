@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -24,6 +25,7 @@ export const useDashboardContext = () => useContext(DashboardContext);
 
 export const Layout: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<string>('all');
+  const location = useLocation();
 
   const { data: userResp } = useQuery({
     queryKey: ['currentUser'],
@@ -64,7 +66,18 @@ export const Layout: React.FC = () => {
           />
 
           <main className="flex-1 overflow-y-auto p-6 md:p-8">
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 12, scale: 0.995 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="h-full"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
       </div>

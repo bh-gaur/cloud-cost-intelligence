@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
 
 interface KpiCardProps {
@@ -12,6 +13,7 @@ interface KpiCardProps {
   direction?: 'UP' | 'DOWN' | 'FLAT';
   isInverseTrend?: boolean; // If true, DOWN is good (green), UP is bad (red)
   icon?: React.ReactNode;
+  delay?: number;
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
@@ -25,6 +27,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   direction,
   isInverseTrend = true,
   icon,
+  delay = 0,
 }) => {
   const isUp = direction === 'UP';
   const isDown = direction === 'DOWN';
@@ -49,7 +52,13 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   const numPercentage = percentage !== undefined && percentage !== null ? Number(percentage) : undefined;
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 ease-out hover:-translate-y-1 flex flex-col justify-between">
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] }}
+      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+    >
       <div>
         <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1.5">
           <span className="text-xs font-semibold uppercase tracking-wider">{title}</span>
@@ -93,6 +102,6 @@ export const KpiCard: React.FC<KpiCardProps> = ({
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

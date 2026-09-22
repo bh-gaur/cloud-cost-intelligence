@@ -42,20 +42,56 @@ const queryClient = new QueryClient({
   },
 });
 
+import { motion } from 'framer-motion';
+import { Sparkles, TrendingUp } from 'lucide-react';
+
+const StartupMotionLoader: React.FC = () => (
+  <div className="h-screen w-screen flex items-center justify-center bg-slate-950 text-slate-100 overflow-hidden relative">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(14,165,233,0.12),transparent_70%)]" />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.88, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative z-10 flex flex-col items-center gap-5 text-center px-4"
+    >
+      <div className="relative flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
+          className="w-16 h-16 rounded-2xl border-2 border-transparent border-t-sky-400 border-r-blue-500 shadow-[0_0_25px_rgba(14,165,233,0.3)]"
+        />
+        <div className="absolute p-3 rounded-xl bg-slate-900 border border-slate-800 text-sky-400 shadow-lg">
+          <TrendingUp className="w-6 h-6 animate-pulse" />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <motion.h2
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="text-base font-bold tracking-tight text-white flex items-center justify-center gap-1.5"
+        >
+          <span>Cloud Cost Intelligence</span>
+          <Sparkles className="w-4 h-4 text-amber-400" />
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+          className="text-xs font-semibold text-slate-400 uppercase tracking-widest"
+        >
+          Initializing FinOps Engine...
+        </motion.p>
+      </div>
+    </motion.div>
+  </div>
+);
+
 const RootRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-950 text-slate-100">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Loading AWS Cost Intelligence...
-          </p>
-        </div>
-      </div>
-    );
+    return <StartupMotionLoader />;
   }
 
   if (isAuthenticated) {
@@ -69,16 +105,7 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-950 text-slate-100">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Loading AWS Cost Intelligence...
-          </p>
-        </div>
-      </div>
-    );
+    return <StartupMotionLoader />;
   }
 
   if (isAuthenticated) {
@@ -95,16 +122,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boole
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-950 text-slate-100">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Loading AWS Cost Intelligence...
-          </p>
-        </div>
-      </div>
-    );
+    return <StartupMotionLoader />;
   }
 
   if (!isAuthenticated) {
