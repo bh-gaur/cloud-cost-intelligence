@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -31,6 +31,14 @@ export const Landing: React.FC = () => {
   const { login } = useAuth();
   const [demoLoading, setDemoLoading] = useState(false);
 
+  // Always reset scroll to the very top on reload / page entry
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
+
   // Interactive FinOps ROI Calculator State
   const [monthlySpend, setMonthlySpend] = useState<number>(50000);
   const [workloadType, setWorkloadType] = useState<'standard' | 'data' | 'hpc'>('data');
@@ -62,7 +70,7 @@ export const Landing: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-zinc-100 font-sans selection:bg-slate-300 dark:selection:bg-zinc-700 selection:text-slate-900 dark:selection:text-white relative overflow-hidden transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-zinc-100 font-sans selection:bg-slate-300 dark:selection:bg-zinc-700 selection:text-slate-900 dark:selection:text-white relative overflow-x-clip transition-colors duration-200">
       {/* Subtle Ambient Glow */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
@@ -75,8 +83,8 @@ export const Landing: React.FC = () => {
       <motion.header
         initial={{ y: -25, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-slate-200/80 dark:bg-[#09090b]/90 dark:border-zinc-800/80 shadow-sm transition-colors"
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/90 border-b border-slate-200/80 dark:bg-[#09090b]/90 dark:border-zinc-800/80 shadow-sm transition-colors"
       >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Brand Logo */}
