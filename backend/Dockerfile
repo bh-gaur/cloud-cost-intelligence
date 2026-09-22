@@ -23,9 +23,19 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/install/bin:$PATH"
 
+# Create non-root system user and group
+RUN addgroup --system --gid 10001 appgroup && \
+    adduser --system --uid 10001 --ingroup appgroup appuser
+
 COPY --from=builder /install /install
 
 COPY . .
+
+# Ensure reports directory exists with proper permissions for non-root user
+RUN mkdir -p /app/reports && \
+    chown -R appuser:appgroup /app
+
+USER appuser
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1

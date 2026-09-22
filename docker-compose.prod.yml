@@ -1,0 +1,103 @@
+# ==============================================================================
+# Production Docker Compose Configuration — Cloud Cost Intelligence Platform
+# ==============================================================================
+# Security Hardened:
+# - PostgreSQL isolated on internal bridge network (no public port exposure)
+# - Backend and Frontend run as non-root users
+# - Enforces strict resource constraints and healthchecks
+# ==============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: finops_prod_postgres
+    restart: always
+    command: postgres -c shared_buffers=64MB -c max_connections=50 -c work_mem=8MB
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-finops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in production}
+      POSTGRES_DB: ${POSTGRES_DB:-cloud_cost_db}
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finops} -d ${POSTGRES_DB:-cloud_cost_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finops_internal
+
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/bh-gaur/cloud-cost-intelligence-backend:latest}
+    container_name: finops_prod_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-finops}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-cloud_cost_db}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set to a secure 32-byte string}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://yourdomain.com}
+      - REPORT_RETENTION_DAYS=90
+      - REPORT_OUTPUT_DIR=/app/reports
+    expose:
+      - "8000"
+    volumes:
+      - report_data:/app/reports
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - finops_internal
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/bh-gaur/cloud-cost-intelligence-frontend:latest}
+    container_name: finops_prod_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api/v1}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          memory: 64M
+    networks:
+      - finops_internal
+
+networks:
+  finops_internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  report_data:
+    driver: local
