@@ -143,90 +143,90 @@ export const App: React.FC = () => {
         <CurrencyProvider>
           <BrowserRouter>
             <Routes>
-            {/* Landing / About & Auth Routes */}
-            <Route path="/" element={<RootRoute />} />
-            <Route path="/about" element={<Landing />} />
-            <Route
-              path="/login"
-              element={
-                <PublicOnlyRoute>
-                  <Login />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <PublicOnlyRoute>
-                  <Register />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <PublicOnlyRoute>
-                  <ForgotPassword />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/reset-password"
-              element={
-                <PublicOnlyRoute>
-                  <ResetPassword />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/accept-invite" element={<AcceptInvite />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-
-            {/* Protected FinOps Application Routes */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/costs" element={<Costs />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/accounts" element={<Accounts />} />
-              <Route path="/regions" element={<Regions />} />
-              <Route path="/optimization" element={<Optimization />} />
-              <Route path="/tagging" element={<TagGovernance />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/integrations" element={<Navigate to="/accounts" replace />} />
-              <Route path="/settings" element={<Settings />} />
-
-              {/* Admin-Exclusive Routes */}
+              {/* Landing / About & Auth Routes */}
+              <Route path="/" element={<RootRoute />} />
+              <Route path="/about" element={<Landing />} />
               <Route
-                path="/admin/users"
+                path="/login"
                 element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminUsers />
-                  </ProtectedRoute>
+                  <PublicOnlyRoute>
+                    <Login />
+                  </PublicOnlyRoute>
                 }
               />
               <Route
-                path="/admin/system"
+                path="/register"
                 element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminSystem />
-                  </ProtectedRoute>
+                  <PublicOnlyRoute>
+                    <Register />
+                  </PublicOnlyRoute>
                 }
               />
-            </Route>
+              <Route
+                path="/forgot-password"
+                element={
+                  <PublicOnlyRoute>
+                    <ForgotPassword />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  <PublicOnlyRoute>
+                    <ResetPassword />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/accept-invite" element={<AcceptInvite />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
 
-            {/* Catch-all fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </CurrencyProvider>
-    </AuthProvider>
+              {/* Protected FinOps Application Routes */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/costs" element={<Costs />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/accounts" element={<Accounts />} />
+                <Route path="/regions" element={<Regions />} />
+                <Route path="/optimization" element={<Optimization />} />
+                <Route path="/tagging" element={<TagGovernance />} />
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/integrations" element={<Navigate to="/accounts" replace />} />
+                <Route path="/settings" element={<Settings />} />
+
+                {/* Admin-Exclusive Routes */}
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminUsers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/system"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminSystem />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
+
+              {/* Catch-all fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </CurrencyProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
