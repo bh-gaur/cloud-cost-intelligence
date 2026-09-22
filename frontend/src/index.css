@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #f3ede2;
+    --card-bg: #faf4ea;
+    --border-color: #ded4c2;
+  }
+
+  /* Eye-soothing pale warm sepia/cream light mode */
+  html:not(.dark) body {
+    background-color: #f3ede2;
+    color: #1c1815;
+  }
+
+  html:not(.dark) .bg-slate-50 {
+    background-color: #f3ede2 !important;
+  }
+
+  /* Warm Pale Alabaster / Cream Card Background (Not plain harsh white) */
+  html:not(.dark) .bg-white {
+    background-color: #faf4ea !important;
+  }
+
+  html:not(.dark) .bg-slate-100 {
+    background-color: #ede4d3 !important;
+  }
+
+  html:not(.dark) .bg-slate-200 {
+    background-color: #e2d7c3 !important;
+  }
+
+  html:not(.dark) .border-slate-200,
+  html:not(.dark) .border-slate-100 {
+    border-color: #ded4c2 !important;
+  }
+
+  html:not(.dark) .text-slate-900 {
+    color: #1c1815 !important;
+  }
+
+  html:not(.dark) .text-slate-800 {
+    color: #2b2520 !important;
+  }
+
+  html:not(.dark) .text-slate-700 {
+    color: #423c34 !important;
+  }
+
+  html:not(.dark) .text-slate-600 {
+    color: #544e45 !important;
+  }
+
+  html:not(.dark) .text-slate-500 {
+    color: #756d61 !important;
+  }
+
+  html:not(.dark) .text-slate-400 {
+    color: #9e9486 !important;
+  }
+
+  /* Distinct Warm Oat / Dune Sidebar Styling in Light Mode */
+  html:not(.dark) .sidebar-container {
+    background-color: #e5dcc9 !important;
+    border-right-color: #d1c5b0 !important;
+  }
+
+  html:not(.dark) .sidebar-container div {
+    border-color: #d1c5b0 !important;
+  }
+
+  html:not(.dark) .sidebar-container a:not(.bg-blue-50) {
+    color: #4f473c !important;
+  }
+
+  html:not(.dark) .sidebar-container a:not(.bg-blue-50):hover {
+    background-color: #dcd2bf !important;
+    color: #1c1815 !important;
+  }
+
+  html:not(.dark) .sidebar-container a.bg-blue-50 {
+    background-color: #faf4ea !important;
+    color: #2563eb !important;
+    border: 1px solid #d1c5b0 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .dark {
+    --bg-primary: #000000;
+    --card-bg: #000000;
+    --border-color: #000000;
+  }
+
+  /* Deep Matte Graphite Charcoal Dark Mode Palette */
+  html.dark body,
+  html.dark .dark\:bg-slate-950 {
+    background-color: #131417 !important;
+    color: #f8fafc;
+  }
+
+  /* Dark Graphite Card Backgrounds */
+  html.dark .dark\:bg-slate-900 {
+    background-color: #1c1d22 !important;
+  }
+
+  html.dark .dark\:bg-slate-800,
+  html.dark .dark\:bg-slate-800\/50 {
+    background-color: #25262c !important;
+  }
+
+  html.dark .dark\:border-slate-800,
+  html.dark .dark\:border-slate-700 {
+    border-color: #2b2c34 !important;
+  }
+
+  html.dark .dark\:text-slate-400 {
+    color: #9497a6 !important;
+  }
+
+  html.dark .dark\:text-slate-500 {
+    color: #7b7e8d !important;
+  }
+
+  /* Dark mode sidebar in deep graphite tone */
+  html.dark .sidebar-container {
+    background-color: #0f1013 !important;
+    border-right-color: #222329 !important;
+  }
+
+  html.dark .sidebar-container div {
+    border-color: #222329 !important;
+  }
+
+  html.dark .sidebar-container a:not([class*="bg-blue-900"]) {
+    color: #9497a6 !important;
+  }
+
+  html.dark .sidebar-container a[class*="bg-blue-900"] {
+    background-color: rgba(30, 58, 138, 0.35) !important;
+    color: #60a5fa !important;
+  }
+
+  html.dark .sidebar-container a:hover:not([class*="bg-blue-900"]) {
+    background-color: #1c1d22 !important;
+    color: #ffffff !important;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Custom clean scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Glassmorphism and dark glow accent utility classes */
+.dark-glass {
+  background: rgba(11, 15, 23, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark-card-glow {
+  box-shadow: 0 0 25px -5px rgba(14, 165, 233, 0.05);
+}
+
+/* Card smooth upward hover transition */
+.bg-white.rounded-xl,
+.bg-white.rounded-2xl,
+.dark\:bg-slate-900.rounded-xl,
+.dark\:bg-slate-900.rounded-2xl {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.bg-white.rounded-xl:hover,
+.bg-white.rounded-2xl:hover,
+.dark\:bg-slate-900.rounded-xl:hover,
+.dark\:bg-slate-900.rounded-2xl:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}

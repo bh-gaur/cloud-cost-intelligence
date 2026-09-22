@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.pytest_cache
+*.db
+cloud_cost.db
+node_modules
+dist
+venv
+.venv
+__pycache__

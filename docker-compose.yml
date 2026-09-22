@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: finops_postgres
+    restart: always
+    command: postgres -c shared_buffers=32MB -c max_connections=30 -c work_mem=4MB
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-finops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finops_password}
+      POSTGRES_DB: ${POSTGRES_DB:-cloud_cost_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finops} -d ${POSTGRES_DB:-cloud_cost_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-cloud-cost-intelligence-backend:latest}
+    container_name: finops_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+      - DEMO_MODE=${DEMO_MODE:-true}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://finops:finops_password@postgres:5432/cloud_cost_db}
+      - SECRET_KEY=${SECRET_KEY:-production-secure-32-byte-random-jwt-key-2026-finops}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:80,http://frontend:80}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:5173/auth/callback}
+      - REPORT_RETENTION_DAYS=90
+      - REPORT_OUTPUT_DIR=/app/reports
+    ports:
+      - "8000:8000"
+    volumes:
+      - report_data:/app/reports
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 384M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ${FRONTEND_IMAGE:-cloud-cost-intelligence-frontend:latest}
+    container_name: finops_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          memory: 32M
+
+volumes:
+  postgres_data:
+    driver: local
+  report_data:
+    driver: local
