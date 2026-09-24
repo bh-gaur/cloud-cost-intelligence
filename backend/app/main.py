@@ -6,11 +6,13 @@ Initializes middleware, health endpoints, CORS, database schemas, and v1 routers
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.config.settings import settings
 from app.database.base import Base
@@ -134,11 +136,15 @@ def health_check():
 
 @app.get("/health/db", tags=["Health"])
 def database_health():
+def database_health(db: Session = Depends(get_db)):
     """Database connectivity and query test."""
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         return ApiResponse.ok({"database": "connected", "engine": engine.dialect.name})
+        db.execute(text("SELECT 1"))
+        dialect_name = db.bind.dialect.name if db.bind else engine.dialect.name
+        return ApiResponse.ok({"database": "connected", "engine": dialect_name})
     except Exception as e:
         return ApiResponse.fail(code="DATABASE_UNAVAILABLE", message=f"Database check failed: {str(e)}")
 

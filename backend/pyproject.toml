@@ -29,6 +29,7 @@ dependencies = [
     "httpx>=0.27.0",
     "python-multipart>=0.0.9",
     "xhtml2pdf>=0.2.11",
+    "psycopg2-binary>=2.9.9",
 ]
 
 
