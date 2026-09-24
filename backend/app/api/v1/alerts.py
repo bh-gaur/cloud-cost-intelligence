@@ -110,6 +110,18 @@ def trigger_anomaly_scan(
     tenant_ctx: TenantContext = Depends(get_tenant_context),
 ):
     """Scans cost history for statistical baseline anomalies and updates budgets."""
+    from app.models.account import AWSAccount, CloudAccount
+    has_accounts = (
+        db.query(AWSAccount).filter(AWSAccount.organization_id == tenant_ctx.organization_id).count() > 0
+        or db.query(CloudAccount).filter(CloudAccount.organization_id == tenant_ctx.organization_id).count() > 0
+    )
+    if not has_accounts:
+        return ApiResponse.ok({
+            "message": "No AWS accounts connected to your organization. Anomaly scan skipped.",
+            "anomalies_count": 0,
+            "new_anomalies_count": 0,
+        })
+
     events = detector.detect_daily_anomalies(db, organization_id=tenant_ctx.organization_id)
     detector.sync_budgets(db, organization_id=tenant_ctx.organization_id)
     total_anomalies = (

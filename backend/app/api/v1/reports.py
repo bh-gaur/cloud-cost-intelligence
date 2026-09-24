@@ -69,11 +69,22 @@ def generate_report(
     db: Session = Depends(get_db),
     tenant_ctx: TenantContext = Depends(RequirePermission(PERM_REPORTS_CREATE)),
 ):
-    """Generates a new CSV, JSON, or HTML report and saves to local disk."""
     if req.start_date > req.end_date:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="start_date must precede or match end_date.",
+        )
+
+    # Validate that the tenant has at least one connected AWS account
+    from app.models.account import AWSAccount, CloudAccount
+    has_accounts = (
+        db.query(AWSAccount).filter(AWSAccount.organization_id == tenant_ctx.organization_id).count() > 0
+        or db.query(CloudAccount).filter(CloudAccount.organization_id == tenant_ctx.organization_id).count() > 0
+    )
+    if not has_accounts:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot generate report: No AWS accounts are connected to your organization. Please connect an account first under AWS Accounts.",
         )
 
     try:

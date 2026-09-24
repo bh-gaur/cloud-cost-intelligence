@@ -6,7 +6,8 @@ import {
   Plus,
   Clock,
   ShieldCheck,
-  X
+  X,
+  AlertTriangle,
 } from 'lucide-react';
 import { reportApi } from '../api/reportApi';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -14,9 +15,11 @@ import { EmptyState } from '../components/EmptyState';
 import { ConfirmModal } from '../components/ConfirmModal';
 import type { ReportItem } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useDashboardContext } from '../components/Layout';
 
 export const Reports: React.FC = () => {
   const { activeOrg } = useAuth();
+  const { accounts } = useDashboardContext();
   const role = activeOrg?.role?.toUpperCase();
   const canCreateReport = role === 'OWNER' || role === 'ADMIN' || role === 'FINOPS_MANAGER' || role === 'ANALYST';
   const canDownloadReport = role === 'OWNER' || role === 'ADMIN' || role === 'FINOPS_MANAGER' || role === 'ANALYST';
@@ -138,13 +141,32 @@ export const Reports: React.FC = () => {
         {canCreateReport && (
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
+            disabled={accounts.length === 0}
+            title={accounts.length === 0 ? "Connect an AWS account first" : "Generate New Report"}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg font-medium text-sm transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Generate New Report
           </button>
         )}
       </div>
+
+      {/* No Accounts Connected Alert */}
+      {accounts.length === 0 && (
+        <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-xl text-amber-800 dark:text-amber-200 text-xs shadow-xs">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+          <div className="flex-1">
+            <span className="font-semibold">No AWS Accounts Connected: </span>
+            <span>You must connect at least one AWS account before generating or scheduling cost intelligence reports.</span>
+          </div>
+          <a
+            href="/accounts"
+            className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold text-xs transition-colors shrink-0"
+          >
+            Connect Account
+          </a>
+        </div>
+      )}
 
       {/* Retention Policy Notice */}
       <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">

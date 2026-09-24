@@ -84,6 +84,18 @@ def run_optimization_scan(
     tenant_ctx: TenantContext = Depends(RequirePermission(PERM_OPTIMIZATION_MANAGE)),
 ):
     """Triggers deep live AWS scanning and FinOps optimization engine across all tenant accounts."""
+    from app.models.account import AWSAccount, CloudAccount
+    has_accounts = (
+        db.query(AWSAccount).filter(AWSAccount.organization_id == tenant_ctx.organization_id).count() > 0
+        or db.query(CloudAccount).filter(CloudAccount.organization_id == tenant_ctx.organization_id).count() > 0
+    )
+    if not has_accounts:
+        return ApiResponse.ok({
+            "message": "No AWS accounts connected to your organization. Optimization scan skipped.",
+            "count": 0,
+            "total_monthly_savings": 0.0,
+        })
+
     results = engine.run_all(
         db, account_id=account_id, organization_id=tenant_ctx.organization_id
     )
