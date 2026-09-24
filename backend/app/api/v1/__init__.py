@@ -20,6 +20,7 @@ from app.api.v1.admin import router as admin_router
 from app.api.v1.members import router as members_router
 from app.api.v1.health import router as health_router
 from app.api.v1.tagging import router as tagging_router
+from app.api.v1.copilot import router as copilot_router
 
 v1_router = APIRouter(prefix="/api/v1")
 
@@ -40,3 +41,4 @@ v1_router.include_router(integrations_router)
 v1_router.include_router(aws_router)
 v1_router.include_router(tagging_router)
 v1_router.include_router(admin_router)
+v1_router.include_router(copilot_router)

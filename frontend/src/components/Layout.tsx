@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { FinOpsCopilot } from './FinOpsCopilot';
 import { authApi } from '../api/authApi';
 import { awsApi } from '../api/awsApi';
 import { apiClient } from '../api/client';
@@ -80,6 +81,7 @@ export const Layout: React.FC = () => {
             </AnimatePresence>
           </main>
         </div>
+        <FinOpsCopilot selectedAccount={selectedAccount} />
       </div>
     </DashboardContext.Provider>
   );
