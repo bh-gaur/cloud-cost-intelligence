@@ -135,13 +135,9 @@ def health_check():
 
 
 @app.get("/health/db", tags=["Health"])
-def database_health():
 def database_health(db: Session = Depends(get_db)):
     """Database connectivity and query test."""
     try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        return ApiResponse.ok({"database": "connected", "engine": engine.dialect.name})
         db.execute(text("SELECT 1"))
         dialect_name = db.bind.dialect.name if db.bind else engine.dialect.name
         return ApiResponse.ok({"database": "connected", "engine": dialect_name})
