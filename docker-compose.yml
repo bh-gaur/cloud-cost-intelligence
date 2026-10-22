@@ -43,7 +43,7 @@ services:
       - DEMO_MODE=${DEMO_MODE:-true}
       - DATABASE_URL=${DATABASE_URL:-postgresql://finops:finops_password@postgres:5432/cloud_cost_db}
       - SECRET_KEY=${SECRET_KEY:-production-secure-32-byte-random-jwt-key-2026-finops}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:80,http://frontend:80}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:80,http://127.0.0.1:5173,http://127.0.0.1:80,http://frontend:80}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:5173/auth/callback}
@@ -70,6 +70,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api/v1}
     image: ${FRONTEND_IMAGE:-cloud-cost-intelligence-frontend:latest}
     container_name: finops_frontend
     restart: unless-stopped
@@ -78,7 +80,7 @@ services:
     ports:
       - "5173:80"
     environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api/v1}
     deploy:
       resources:
         limits:
