@@ -11,7 +11,7 @@ from app.utils.money import to_decimal
 
 class S3StorageRule(BaseOptimizationRule):
     rule_id = "OPT-005"
-    name = "S3 Intelligent-Tiering Opportunity"
+    name = "S3 Buckets Without Lifecycle Policies"
     service = "Amazon Simple Storage Service"
 
     def evaluate(

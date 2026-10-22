@@ -15,6 +15,7 @@ import {
   Globe2,
   Calendar,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -106,6 +107,19 @@ export const Dashboard: React.FC = () => {
 
   const [startDate, setStartDate] = useState(defaultStartStr);
   const [endDate, setEndDate] = useState(todayStr);
+  const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
+
+  const handleDownloadReport = async (rep: any) => {
+    try {
+      setDownloadingReportId(rep.id);
+      await reportApi.downloadReport(rep.id, `${rep.name}.${rep.format}`);
+    } catch (err: any) {
+      console.error('Download error:', err);
+      alert(err.response?.data?.detail || err.message || 'Failed to download report.');
+    } finally {
+      setDownloadingReportId(null);
+    }
+  };
 
   const customStart = trendRange === 'custom' && startDate ? startDate : undefined;
   const customEnd = trendRange === 'custom' && endDate ? endDate : undefined;
@@ -698,14 +712,18 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <a
-                  href={reportApi.getDownloadUrl(rep.id)}
-                  download
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
+                <button
+                  onClick={() => handleDownloadReport(rep)}
+                  disabled={downloadingReportId === rep.id}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  {downloadingReportId === rep.id ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
                   <span>Download</span>
-                </a>
+                </button>
               </div>
             ))}
           </div>

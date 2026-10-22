@@ -44,9 +44,8 @@ from app.services.audit_service import AuditService
 router = APIRouter(tags=["Organization Members"])
 
 ROLE_HIERARCHY = {
-    "OWNER": 5,
-    "ADMIN": 4,
-    "FINOPS_MANAGER": 3,
+    "OWNER": 4,
+    "ADMIN": 3,
     "ANALYST": 2,
     "VIEWER": 1,
 }

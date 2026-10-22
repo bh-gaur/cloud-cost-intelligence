@@ -165,7 +165,39 @@ def test_integration(
                 else:
                     error_msg = f"HTTP status {resp.status}"
         elif integration.channel_type == "email":
-            success = True
+            from app.notifications.email import EmailNotificationProvider
+            cfg_recipients = (integration.config or {}).get("recipients", [])
+            if not cfg_recipients and current_user.email:
+                cfg_recipients = [current_user.email]
+            
+            email_provider = EmailNotificationProvider(recipients=cfg_recipients)
+            health = email_provider.health_check()
+            if not health.get("healthy"):
+                success = False
+                error_msg = health.get("message", "SMTP service check failed. Verify SMTP configuration in .env.")
+            else:
+                sent = email_provider.send({
+                    "subject": f"[{org_name}] Test Notification - Cloud Cost Intelligence",
+                    "html_body": f"""
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+                        <div style="margin-bottom: 16px;">
+                            <span style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-transform: uppercase;">Channel Verified</span>
+                        </div>
+                        <h2 style="color: #0f172a; margin: 0 0 12px 0;">Test Alert Notification</h2>
+                        <p style="color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
+                            This is a test notification confirming that the notification channel <strong>{integration.name}</strong> for organization <strong>{org_name}</strong> is successfully connected and receiving alerts.
+                        </p>
+                        <div style="background-color: #f8fafc; border-radius: 8px; padding: 14px; border: 1px solid #f1f5f9; margin-bottom: 20px;">
+                            <p style="margin: 0 0 6px 0; font-size: 13px; color: #64748b;"><strong>Channel:</strong> {integration.name} (Email)</p>
+                            <p style="margin: 0; font-size: 13px; color: #64748b;"><strong>Timestamp:</strong> {now.strftime("%Y-%m-%d %H:%M:%S UTC")}</p>
+                        </div>
+                        <p style="color: #94a3b8; font-size: 12px; margin: 0;">Cloud Cost Intelligence &bull; Automated Anomaly & Budget Monitoring</p>
+                    </div>
+                    """,
+                })
+                success = sent
+                if not success:
+                    error_msg = "SMTP server connected but failed to deliver test email. Check recipient address and permissions."
         else:
             success = True
     except Exception as e:

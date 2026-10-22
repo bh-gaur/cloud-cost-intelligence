@@ -14,6 +14,10 @@ export const authApi = {
     const res = await apiClient.get<ApiResponse<User>>('/auth/me');
     return res.data;
   },
+  refreshToken: async (refreshToken: string) => {
+    const res = await apiClient.post<ApiResponse<AuthTokens>>('/auth/refresh', { refresh_token: refreshToken });
+    return res.data;
+  },
   googleAuth: async (payload: { code?: string; credential?: string; redirect_uri?: string }) => {
     const res = await apiClient.post<ApiResponse<AuthTokens & { user: User }>>('/auth/google', payload);
     return res.data;

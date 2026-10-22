@@ -108,8 +108,8 @@ This document defines the comprehensive 27-point manual QA testing suite for the
 
 ---
 
-### TC-07: Organization Member Invitation & Manager Role Delegation
-- **Preconditions**: `OWNER`, `ADMIN`, or `FINOPS_MANAGER` role in active organization.
+### TC-07: Organization Member Invitation
+- **Preconditions**: `ADMIN` role in active organization.
 - **Steps**:
   1. Navigate to **Admin Settings -> Members**.
   2. Invite `analyst@corp.local` with role `ANALYST`.
@@ -120,11 +120,11 @@ This document defines the comprehensive 27-point manual QA testing suite for the
 ---
 
 ### TC-08: Member Role Update & Real-Time Header Sync
-- **Preconditions**: User signed in with `ADMIN` or `FINOPS_MANAGER` role.
+- **Preconditions**: User signed in with `ADMIN` role.
 - **Steps**:
   1. Navigate to **Admin Settings -> Members**.
-  2. Locate an active member row and select new role `FINOPS_MANAGER` from the role dropdown selector.
-- **Expected Result**: Role updated in backend via `PATCH`. Top-right header badge and Settings profile view immediately refresh role display to `FINOPS_MANAGER`. Role escalation rules prevent manager from elevating anyone to `ADMIN` or `OWNER`.
+  2. Locate an active member row and select new role `ANALYST` from the role dropdown selector.
+- **Expected Result**: Role updated in backend via `PATCH`. Top-right header badge and Settings profile view immediately refresh role display to `ANALYST`. Role escalation rules prevent elevating anyone beyond caller's role.
 - **Actual Result**: Role updated dynamically across all UI components.
 - **Status**: `PASSED`
 

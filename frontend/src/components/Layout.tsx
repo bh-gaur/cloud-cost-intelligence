@@ -7,6 +7,7 @@ import { Header } from './Header';
 import { authApi } from '../api/authApi';
 import { awsApi } from '../api/awsApi';
 import { apiClient } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 
 interface DashboardContextType {
@@ -48,6 +49,7 @@ export const Layout: React.FC = () => {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { activeOrg } = useAuth();
   const user = userResp?.data;
   const accounts = accountsResp?.data || [];
   const isDemoMode = healthResp?.demo_mode ?? false;
@@ -55,7 +57,7 @@ export const Layout: React.FC = () => {
   return (
     <DashboardContext.Provider value={{ selectedAccount, setSelectedAccount, accounts }}>
       <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-sans">
-        <Sidebar userRole={user?.role} />
+        <Sidebar userRole={activeOrg?.role || user?.role} />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Header
             user={user}

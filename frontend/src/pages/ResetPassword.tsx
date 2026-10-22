@@ -58,7 +58,7 @@ export const ResetPassword: React.FC = () => {
         navigate('/login?message=Password updated successfully. You may now log in.');
       }, 2500);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Invalid or expired password reset token.');
+      setError(err.response?.data?.error?.message || err.response?.data?.detail || err.message || 'Invalid or expired password reset token.');
     } finally {
       setLoading(false);
     }

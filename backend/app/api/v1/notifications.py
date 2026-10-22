@@ -1,6 +1,6 @@
 """
 Notification Integrations API Router
-Manages external webhooks (Slack, Teams, Google Chat, SMTP) and health testing.
+Manages external notification channels (Slack, Email) and health testing.
 """
 
 from datetime import datetime, timezone
@@ -13,7 +13,9 @@ from app.schemas.envelope import ApiResponse
 from app.schemas.integration import NotificationTestRequest, NotificationTestResponse
 from app.models.notification import NotificationIntegration
 from app.notifications.service import NotificationService
-from app.auth.dependencies import get_current_user, require_admin
+from app.auth.dependencies import get_current_user
+from app.auth.tenant_context import TenantContext
+from app.auth.permissions import RequirePermission, PERM_INTEGRATIONS_MANAGE
 from app.models.user import User
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
@@ -26,7 +28,7 @@ def get_notification_status(
 ):
     """Returns connectivity health status for all notification channels without exposing secrets."""
     statuses = {}
-    for ch in ("email", "slack", "teams", "google_chat"):
+    for ch in ("email", "slack"):
         statuses[ch] = notification_service.test_connection(ch)
     return ApiResponse.ok(statuses)
 
@@ -37,7 +39,8 @@ from app.config.settings import settings
 @router.post("/test", response_model=ApiResponse[NotificationTestResponse])
 def test_notification_channel(
     req: NotificationTestRequest,
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
+    tenant_ctx: TenantContext = Depends(RequirePermission(PERM_INTEGRATIONS_MANAGE)),
 ):
     """Validates configuration and dispatches a test alert notification to the specified channel."""
     res = notification_service.test_connection(

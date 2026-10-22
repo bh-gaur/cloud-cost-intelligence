@@ -15,7 +15,21 @@ export const reportApi = {
     return res.data;
   },
   getDownloadUrl: (id: string) => {
-    return `${API_BASE_URL}/reports/${id}/download`;
+    const token = localStorage.getItem('access_token');
+    return token ? `${API_BASE_URL}/reports/${id}/download?token=${encodeURIComponent(token)}` : `${API_BASE_URL}/reports/${id}/download`;
+  },
+  downloadReport: async (id: string, filename: string) => {
+    const res = await apiClient.get(`/reports/${id}/download`, {
+      responseType: 'blob',
+    });
+    const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(blobUrl);
   },
 };
 

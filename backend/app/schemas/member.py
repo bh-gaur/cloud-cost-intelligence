@@ -13,7 +13,7 @@ class MemberResponse(BaseModel):
     user_id: str
     email: str
     full_name: Optional[str] = None
-    role: str  # OWNER, ADMIN, FINOPS_MANAGER, ANALYST, VIEWER
+    role: str  # ADMIN, ANALYST, VIEWER
     status: str  # ACTIVE, INVITED, SUSPENDED
     created_at: datetime
     updated_at: datetime
@@ -28,7 +28,7 @@ class MemberUpdateRequest(BaseModel):
 
 class InviteMemberRequest(BaseModel):
     email: str = Field(pattern=r"^[^@]+@[^@]+\.[^@]+$")
-    role: str = "ANALYST"  # OWNER, ADMIN, FINOPS_MANAGER, ANALYST, VIEWER
+    role: str = "ANALYST"  # ADMIN, ANALYST, VIEWER
 
 
 class InviteResponse(BaseModel):

@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-Production%20Ready-green)](backend/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)](docker-compose.yml)
 
-**AWS Cost Intelligence** is an enterprise-grade, full-stack FinOps cloud cost management and optimization platform. Engineered with a clean **Cloud Provider Abstraction**, it monitors daily AWS cloud spend, computes day-over-day cost variances, drills down across multi-account AWS Organizations and regions, runs 11+ automated optimization rules, detects anomalous spend spikes, tracks AWS Budgets, and generates multi-format executive reports (CSV, JSON, print-friendly HTML) dispatched via Slack, Teams, Google Chat, and Email.
+**AWS Cost Intelligence** is an enterprise-grade, full-stack FinOps cloud cost management and optimization platform. Engineered with a clean **Cloud Provider Abstraction**, it monitors daily AWS cloud spend, computes day-over-day cost variances, drills down across multi-account AWS Organizations and regions, runs automated optimization rules, detects anomalous spend spikes, tracks AWS Budgets, and generates multi-format executive reports (CSV and PDF) dispatched via Slack and Email.
 
 ---
 
@@ -23,59 +23,51 @@
   - Filterable, searchable, sortable, and paginated Cost Records table.
   - Live filter-aware streaming CSV downloads for multi-gigabyte datasets.
 - **Automated Cost Optimization Engine**:
-  - 11 modular, rule-based analyzers identifying idle, over-provisioned, or misconfigured cloud resources:
-    1. EC2 Idle Instances (CPU < 5%)
-    2. EC2 Rightsizing
-    3. Unattached EBS Volumes (`available` status)
-    4. Over-provisioned RDS Instances
-    5. S3 Lifecycle & Intelligent-Tiering Opportunities
-    6. NAT Gateway Data Processing & Redundancy Optimization
-    7. CloudWatch Log Group Retention Limits (flagging unbounded retention)
-    8. Orphaned Snapshots (>90 days old)
-    9. Untagged Infrastructure Compliance Detection
-    10. Compute & EC2 Savings Plans Opportunities
-    11. Reserved Instance (RI) Commitment Coverage
+  - Modular, rule-based analyzers identifying idle, unattached, or misconfigured cloud resources:
+    1. Unattached EBS Volumes (`available` status)
+    2. Idle EC2 Instances (CPU < 5%)
+    3. Unassociated Elastic IPs
+    4. S3 Buckets Without Lifecycle Policies
+    5. Untagged Infrastructure / Resources Compliance
+    6. Orphaned Snapshots (>90 days old)
   - Standardized FinOps recommendation model with Confidence (`Observed`, `Estimated`, `Potential`) and Status (`Requires validation`, `Insufficient data`).
 - **Anomaly Detection & AWS Budgets**:
   - Statistical deviation alerts (historical rolling baseline and configurable percentage spikes).
   - AWS Budgets integration displaying consumed percentage, forecasted end-of-month spend, and health statuses (`Healthy`, `Warning`, `Critical`, `Exceeded`).
 - **Multi-Format Reporting & Local Archival**:
-  - Automated generation of CSV, JSON, and styled print-ready HTML reports.
+  - Automated generation of CSV and executive PDF reports.
   - Local disk storage with 90-day retention policies (`REPORT_RETENTION_DAYS=90`).
 - **Multi-Channel Notification Dispatcher**:
   - Slack Block Kit webhooks with formatted KPI metrics and anomaly warnings.
-  - Microsoft Teams Adaptive Card webhooks.
-  - Google Chat Card v2 webhooks.
   - SMTP Email notifications with attached reports.
 - **Authentication, Authorization & Multi-Tenant Access Control**:
   - **Multi-Tenancy & Tenant Isolation**: Strict server-side organization boundaries (`X-Organization-ID` header validation against database `organization_members`). Never trusts frontend-supplied tenant IDs.
-  - **Centralized Role-Based Access Control (RBAC)**: 5 organization roles (`OWNER`, `ADMIN`, `FINOPS_MANAGER`, `ANALYST`, `VIEWER`) mapped centrally to granular permissions (`costs.read`, `costs.export`, `reports.download`, `members.invite`, `aws_accounts.manage`, etc.).
+  - **Centralized Role-Based Access Control (RBAC)**: 4 organization roles (`OWNER`, `ADMIN`, `ANALYST`, `VIEWER`) mapped centrally to granular permissions (`costs.read`, `costs.export`, `reports.download`, `members.invite`, `aws_accounts.manage`, etc.).
   - **Session Management & Token Revocation**: Active `user_sessions` tracking with device/IP metadata. Supports `/auth/logout`, `/auth/logout-all` (all devices signout), and `/auth/sessions` management.
   - **IDOR & Resource Ownership Protection**: Server-side verification of resource ownership (`report.organization_id == active_org_id`, `account.organization_id == active_org_id`). Safe file streaming preventing path traversal.
-  - **Owner & Role Escalation Protection**: Prevents removing or demoting the last organization `OWNER`. Prevents users from escalating their own privileges or assigning roles higher than their own level.
+  - **Role Escalation Protection**: Prevents users from escalating their own privileges or assigning roles higher than their own level.
   - **Secure Password & Token Security**: Password strength validation, bcrypt hashing (rounds=12), generic login failure messages, single-use cryptographically secure reset/verification tokens. Account enumeration protection on reset flows.
 
 ---
 
 ## Security Permission Matrix
 
-| Capability | OWNER | ADMIN | FINOPS_MANAGER | ANALYST | VIEWER |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **View Dashboard / Costs** | YES | YES | YES | YES | YES |
-| **Export Costs (CSV)** | YES | YES | YES | YES | NO |
-| **View AWS Accounts** | YES | YES | YES | YES | YES |
-| **Manage AWS Accounts** | YES | YES | NO | NO | NO |
-| **Generate Reports** | YES | YES | YES | YES | NO |
-| **Download Reports** | YES | YES | YES | YES | NO |
-| **Delete Reports** | YES | YES | NO | NO | NO |
-| **Manage Optimization** | YES | YES | YES | NO | NO |
-| **Manage Alerts & Budgets** | YES | YES | YES | NO | NO |
-| **Manage Integrations** | YES | YES | NO | NO | NO |
-| **View Members** | YES | YES | YES | YES | YES |
-| **Invite & Manage Members** | YES | YES* | NO | NO | NO |
-| **Organization Settings** | YES | YES | NO | NO | NO |
+| Capability | OWNER | ADMIN | ANALYST | VIEWER |
+| :--- | :---: | :---: | :---: | :---: |
+| **View Dashboard / Costs** | YES | YES | YES | YES |
+| **Export Costs (CSV)** | YES | YES | YES | NO |
+| **View AWS Accounts** | YES | YES | YES | YES |
+| **Manage AWS Accounts** | YES | YES | NO | NO |
+| **Generate Reports** | YES | YES | YES | NO |
+| **Download Reports** | YES | YES | YES | YES |
+| **Delete Reports** | YES | YES | NO | NO |
+| **Manage Optimization** | YES | YES | NO | NO |
+| **Manage Alerts & Budgets** | YES | YES | NO | NO |
+| **Manage Integrations** | YES | YES | NO | NO |
+| **View Members** | YES | YES | YES | YES |
+| **Invite & Manage Members** | YES | YES | NO | NO |
+| **Organization Settings** | YES | YES | NO | NO |
 
-*\*Role escalation protection prevents ADMIN from promoting members to OWNER. Last OWNER cannot be removed or demoted.*
 - **Demo Mode**:
   - Out-of-the-box exploration without live AWS credentials (`DEMO_MODE=true`), clearly displaying `DEMO DATA` indicators.
 
@@ -160,8 +152,8 @@ The platform includes standalone CLI utilities under `backend/scripts/`:
 # Fetch and synchronize AWS costs (or mock costs)
 python backend/scripts/fetch_costs.py --provider mock --start-date 2026-09-01 --end-date 2026-09-12
 
-# Generate reports in CSV, JSON, or print-ready HTML
-python backend/scripts/generate_report.py --format html --output-dir backend/reports/html/
+# Generate reports in CSV or PDF
+python backend/scripts/generate_report.py --format pdf --output-dir backend/reports/pdf/
 
 # Dispatch reports to alert channels
 python backend/scripts/send_report.py --channel slack --dry-run
@@ -169,7 +161,7 @@ python backend/scripts/send_report.py --channel slack --dry-run
 # Run anomaly detection algorithms
 python backend/scripts/detect_anomalies.py
 
-# Run all 11+ optimization rules and refresh recommendations
+# Run optimization rules and refresh recommendations
 python backend/scripts/generate_optimizations.py
 ```
 

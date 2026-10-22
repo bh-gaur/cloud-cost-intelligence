@@ -6,7 +6,8 @@ import {
   Plus,
   Clock,
   ShieldCheck,
-  X
+  X,
+  RefreshCw,
 } from 'lucide-react';
 import { reportApi } from '../api/reportApi';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -18,11 +19,12 @@ import { useAuth } from '../context/AuthContext';
 export const Reports: React.FC = () => {
   const { activeOrg } = useAuth();
   const role = activeOrg?.role?.toUpperCase();
-  const canCreateReport = role === 'OWNER' || role === 'ADMIN' || role === 'FINOPS_MANAGER' || role === 'ANALYST';
-  const canDownloadReport = role === 'OWNER' || role === 'ADMIN' || role === 'FINOPS_MANAGER' || role === 'ANALYST';
+  const canCreateReport = role === 'OWNER' || role === 'ADMIN' || role === 'ANALYST';
+  const canDownloadReport = role === 'OWNER' || role === 'ADMIN' || role === 'ANALYST' || role === 'VIEWER';
   const canDeleteReport = role === 'OWNER' || role === 'ADMIN';
 
   const [reports, setReports] = useState<ReportItem[]>([]);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -30,7 +32,7 @@ export const Reports: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Form state
-  const [format, setFormat] = useState<'csv' | 'json' | 'html' | 'pdf'>('pdf');
+  const [format, setFormat] = useState<'csv' | 'pdf'>('pdf');
   const [customName, setCustomName] = useState('');
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -79,27 +81,16 @@ export const Reports: React.FC = () => {
     }
   };
 
-  const handleDownload = (report: ReportItem) => {
-    const token = localStorage.getItem('access_token');
-    const url = reportApi.getDownloadUrl(report.id);
-
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const blobUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `${report.name || 'cost_report'}.${report.format}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(blobUrl);
-      })
-      .catch((err) => console.error('Download error:', err));
+  const handleDownload = async (report: ReportItem) => {
+    try {
+      setDownloadingId(report.id);
+      await reportApi.downloadReport(report.id, `${report.name || 'cost_report'}.${report.format}`);
+    } catch (err: any) {
+      console.error('Download error:', err);
+      alert(err.response?.data?.detail || err.response?.data?.error?.message || err.message || 'Failed to download report.');
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const confirmDeleteReport = async () => {
@@ -132,7 +123,7 @@ export const Reports: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reports Center</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Generate and download multi-format cost intelligence reports (CSV, JSON, HTML, PDF).
+            Generate and download multi-format cost intelligence reports (CSV, PDF).
           </p>
         </div>
         {canCreateReport && (
@@ -239,10 +230,15 @@ export const Reports: React.FC = () => {
                         {canDownloadReport && (
                           <button
                             onClick={() => handleDownload(r)}
-                            className="p-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            disabled={downloadingId === r.id}
+                            className="p-1.5 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
                             title="Download Report"
                           >
-                            <Download className="w-4 h-4" />
+                            {downloadingId === r.id ? (
+                              <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
                           </button>
                         )}
                         {canDeleteReport && (
@@ -296,8 +292,8 @@ export const Reports: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Output Format
                 </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(['csv', 'json', 'html', 'pdf'] as const).map((fmt) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {(['csv', 'pdf'] as const).map((fmt) => (
                     <button
                       type="button"
                       key={fmt}

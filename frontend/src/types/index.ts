@@ -26,7 +26,7 @@ export interface Organization {
   created_at: string;
 }
 
-export type TenantRole = 'OWNER' | 'ADMIN' | 'FINOPS_MANAGER' | 'ANALYST' | 'VIEWER';
+export type TenantRole = 'ADMIN' | 'ANALYST' | 'VIEWER' | 'OWNER';
 
 export interface OrganizationMember {
   id: string;

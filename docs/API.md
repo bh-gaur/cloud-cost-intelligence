@@ -87,13 +87,17 @@ All endpoints are versioned under `/api/v1` and return standardized envelopes.
 
 ### 10. Reports Engine (`/api/v1/reports`)
 - `GET /api/v1/reports`: List of previously generated reports with format, file size, creation date, and status.
-- `POST /api/v1/reports/generate`: Generate a new report (`format`: `csv` | `json` | `html`, `date_range`, `account_id`).
-- `GET /api/v1/reports/{id}/download`: Secure streaming download of a generated report.
+- `POST /api/v1/reports/generate`: Generate a new report (`format`: `csv` | `pdf`, `start_date`, `end_date`, `account_id`, optional `name`).
+- `GET /api/v1/reports/{id}/download`: Secure streaming download of a generated report (Supports Bearer token or `?token=` query param).
 - `DELETE /api/v1/reports/{id}`: Delete a report and purge its local file.
 
 ### 11. Integrations (`/api/v1/integrations` & `/api/v1/aws`)
+- `GET /api/v1/integrations`: List configured notification channels for active organization.
+- `POST /api/v1/integrations`: Create a notification channel (`channel_type`: `slack` | `email` | `webhook`, `name`, `config`).
+- `POST /api/v1/integrations/{id}/test`: Dispatches a live test verification alert (sends test email/webhook) to confirm channel delivery.
+- `DELETE /api/v1/integrations/{id}`: Delete a notification channel.
 - `POST /api/v1/aws/test-connection`: Validates AWS IAM credentials, STS identity, and Cost Explorer accessibility. Returns masked account and status.
-- `POST /api/v1/notifications/test`: Dispatches a test payload to a configured channel (Slack, Teams, GChat, Email) and returns delivery status.
+- `POST /api/v1/notifications/test`: Dispatches a test payload to a global channel (Slack, Email) and returns delivery status.
 
 ### 12. Organization & Member Management (`/api/v1/organizations`)
 - `GET /api/v1/organizations/me`: List all organizations user belongs to with active roles.

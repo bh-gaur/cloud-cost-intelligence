@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 generate_optimizations.py
-CLI tool to evaluate all 11+ FinOps optimization rules and write recommendations into database.
+CLI tool to evaluate core FinOps optimization rules and write recommendations into database.
 
 Usage:
     python generate_optimizations.py

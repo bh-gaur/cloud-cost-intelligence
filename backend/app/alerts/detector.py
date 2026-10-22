@@ -358,6 +358,57 @@ class AnomalyDetector:
             }
 
             for integ in integrations:
+                if integ.channel_type == "email":
+                    from app.notifications.email import EmailNotificationProvider
+                    cfg_recipients = (integ.config or {}).get("recipients", [])
+                    email_provider = EmailNotificationProvider(recipients=cfg_recipients)
+                    
+                    rows = "".join(
+                        f"<tr>"
+                        f"<td style='padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: {'#dc2626' if itm['severity']=='CRITICAL' else '#d97706'};'>{itm['severity']}</td>"
+                        f"<td style='padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b;'>{itm['title']}</td>"
+                        f"<td style='padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;'>${itm['detected_value']:,.2f}</td>"
+                        f"<td style='padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 12px;'>{itm['message']}</td>"
+                        f"</tr>"
+                        for itm in anomaly_items[:10]
+                    )
+
+                    email_payload = {
+                        "subject": f"🚨 [{org_name}] {len(events)} Cost Anomalies Detected ({critical_count} Critical)",
+                        "html_body": f"""
+                        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+                            <div style="margin-bottom: 16px;">
+                                <span style="background-color: #dc2626; color: white; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-transform: uppercase;">Anomaly Alert</span>
+                            </div>
+                            <h2 style="color: #0f172a; margin: 0 0 10px 0;">Cost Spike Detected</h2>
+                            <p style="color: #475569; font-size: 14px; margin: 0 0 16px 0;">
+                                Detected <strong>{len(events)}</strong> spend anomalies (<strong>{critical_count} Critical</strong>) for organization <strong>{org_name}</strong>.
+                            </p>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; text-align: left;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase;">
+                                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1;">Severity</th>
+                                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1;">Incident</th>
+                                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1;">Cost</th>
+                                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1;">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows}
+                                </tbody>
+                            </table>
+                            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Cloud Cost Intelligence &bull; Automated Anomaly Detection Engine</p>
+                        </div>
+                        """,
+                    }
+                    ok = email_provider.send(email_payload)
+                    if ok:
+                        integ.test_status = "SUCCESS"
+                        integ.last_tested_at = datetime.now(timezone.utc)
+                    else:
+                        integ.last_error = "Failed to dispatch email anomaly alert"
+                    continue
+
                 webhook_url = (integ.config or {}).get("webhook_url")
                 if not webhook_url or not str(webhook_url).startswith("http"):
                     continue

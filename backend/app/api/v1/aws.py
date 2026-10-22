@@ -224,8 +224,8 @@ def disconnect_aws_account(
 def test_aws_connection(
     req: AWSConnectionTestRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
-    tenant_ctx: TenantContext = Depends(get_tenant_context),
+    current_user: User = Depends(get_current_user),
+    tenant_ctx: TenantContext = Depends(RequirePermission(PERM_AWS_CREATE)),
 ):
     """
     Tests AWS authentication, STS AssumeRole identity, and Cost Explorer accessibility.

@@ -45,6 +45,26 @@ export const Register: React.FC = () => {
       return;
     }
 
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter (A-Z).');
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError('Password must contain at least one lowercase letter (a-z).');
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError('Password must contain at least one digit (0-9).');
+      return;
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setError('Password must contain at least one special character (!@#$%^&*...).');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -53,11 +73,11 @@ export const Register: React.FC = () => {
         password,
         full_name: fullName,
         org_name: orgName,
-        role_name: 'OWNER',
+        role_name: 'ADMIN',
       });
       navigate('/accounts');
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Registration failed. Please check your information.');
+      setError(err.response?.data?.error?.message || err.response?.data?.detail || err.message || 'Registration failed. Please check your information.');
     } finally {
       setLoading(false);
     }
@@ -185,6 +205,9 @@ export const Register: React.FC = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-zinc-400">
+                  Must be 8+ chars with uppercase, lowercase, number, and special symbol (!@#$).
+                </p>
               </div>
 
               <div>
@@ -218,7 +241,7 @@ export const Register: React.FC = () => {
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Automatic Tenant Organization Creation</span>
                 </div>
-                <p>Registering assigns your account the <strong className="text-slate-800 dark:text-zinc-200">OWNER</strong> role with full administration rights.</p>
+                <p>Registering assigns your account the <strong className="text-slate-800 dark:text-zinc-200">ADMIN</strong> role with full administration rights.</p>
               </div>
 
               <button

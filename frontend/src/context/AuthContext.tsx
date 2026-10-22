@@ -142,8 +142,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const isAuthenticated = !!user;
-  const isAdmin = user?.role === 'ADMIN';
   const activeOrg = organizations.find((o) => o.organization_id === activeOrgId) || null;
+  const isOrgAdmin = activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN' || isOrgAdmin;
 
   return (
     <AuthContext.Provider

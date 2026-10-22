@@ -17,15 +17,39 @@ logger = logging.getLogger(__name__)
 
 
 class EmailNotificationProvider(NotificationProvider):
+    def __init__(self, recipients: Optional[List[str]] = None):
+        self.recipients = recipients or []
+
     def get_channel_name(self) -> str:
         return "email"
 
-    def validate_configuration(self) -> bool:
-        return bool(settings.SMTP_HOST and settings.EMAIL_RECIPIENTS)
+    def _resolve_recipients(self, payload: Optional[Dict[str, Any]] = None) -> List[str]:
+        target = []
+        if payload and payload.get("recipients"):
+            raw = payload["recipients"]
+            if isinstance(raw, list):
+                target = [str(r).strip() for r in raw if str(r).strip()]
+            elif isinstance(raw, str):
+                target = [r.strip() for r in raw.split(",") if r.strip()]
+        
+        if not target and self.recipients:
+            if isinstance(self.recipients, list):
+                target = [str(r).strip() for r in self.recipients if str(r).strip()]
+            elif isinstance(self.recipients, str):
+                target = [r.strip() for r in self.recipients.split(",") if r.strip()]
+
+        if not target and settings.EMAIL_RECIPIENTS:
+            target = [r.strip() for r in settings.EMAIL_RECIPIENTS.split(",") if r.strip()]
+
+        return target
+
+    def validate_configuration(self, payload: Optional[Dict[str, Any]] = None) -> bool:
+        recipients = self._resolve_recipients(payload)
+        return bool(settings.SMTP_HOST and recipients)
 
     def health_check(self) -> Dict[str, Any]:
-        if not self.validate_configuration():
-            return {"healthy": False, "message": "SMTP host or recipients not configured."}
+        if not settings.SMTP_HOST:
+            return {"healthy": False, "message": "SMTP host is not configured."}
         try:
             with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=5) as server:
                 server.ehlo()
@@ -38,13 +62,13 @@ class EmailNotificationProvider(NotificationProvider):
             return {"healthy": False, "message": f"SMTP health check failed: {str(e)}"}
 
     def send(self, payload: Dict[str, Any], attachment_path: Optional[str] = None) -> bool:
-        if not self.validate_configuration():
-            logger.warning("Email provider invoked but not configured.")
+        recipients = self._resolve_recipients(payload)
+        if not settings.SMTP_HOST or not recipients:
+            logger.warning("Email provider invoked but SMTP_HOST or recipients not configured.")
             return False
 
         subject = payload.get("subject", "AWS Cost Intelligence Daily Spend Summary")
         html_body = payload.get("html_body", "<p>Daily cloud spend update attached.</p>")
-        recipients = [r.strip() for r in (settings.EMAIL_RECIPIENTS or "").split(",") if r.strip()]
 
         msg = MIMEMultipart("mixed")
         msg["Subject"] = subject

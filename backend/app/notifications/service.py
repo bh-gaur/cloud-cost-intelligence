@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Optional
 from app.notifications.base import NotificationProvider
 from app.notifications.email import EmailNotificationProvider
 from app.notifications.slack import SlackNotificationProvider
-from app.notifications.google_chat import GoogleChatNotificationProvider
-from app.notifications.teams import TeamsNotificationProvider
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +17,6 @@ class NotificationService:
         self.providers: Dict[str, NotificationProvider] = {
             "email": EmailNotificationProvider(),
             "slack": SlackNotificationProvider(),
-            "google_chat": GoogleChatNotificationProvider(),
-            "teams": TeamsNotificationProvider(),
         }
 
     def dispatch(
@@ -53,12 +49,6 @@ class NotificationService:
         """Runs a diagnostic test without sending external spam."""
         if channel == "slack":
             p = SlackNotificationProvider(webhook_url=custom_webhook)
-            return p.health_check()
-        elif channel == "teams":
-            p = TeamsNotificationProvider(webhook_url=custom_webhook)
-            return p.health_check()
-        elif channel == "google_chat":
-            p = GoogleChatNotificationProvider(webhook_url=custom_webhook)
             return p.health_check()
         elif channel == "email":
             p = EmailNotificationProvider()

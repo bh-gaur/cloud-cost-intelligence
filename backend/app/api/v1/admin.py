@@ -12,7 +12,7 @@ from app.schemas.envelope import ApiResponse, ApiMeta
 from app.schemas.auth import UserResponse
 from app.models.user import User
 from app.models.audit import AuditLog
-from app.auth.dependencies import require_admin
+from app.auth.dependencies import require_admin, require_admin_or_org_admin
 from app.config.settings import settings
 
 router = APIRouter(prefix="/admin", tags=["Administration"])
@@ -110,7 +110,7 @@ def list_audit_logs(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin),
+    admin_user: User = Depends(require_admin_or_org_admin),
     tenant_ctx: TenantContext = Depends(get_tenant_context),
 ):
     """Returns paginated audit log entries for the active organization."""
@@ -151,7 +151,7 @@ def list_audit_logs(
 @router.get("/system", response_model=ApiResponse[Dict[str, Any]])
 def get_system_health(
     db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin),
+    admin_user: User = Depends(require_admin_or_org_admin),
 ):
     """Returns runtime system status, report retention configurations, and database state."""
     return ApiResponse.ok({

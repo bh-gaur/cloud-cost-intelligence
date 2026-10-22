@@ -33,10 +33,9 @@ class ReportService:
         self.html_generator = HTMLReportGenerator()
         self.pdf_generator = PDFReportGenerator()
 
-        # Ensure base directories exist
+        # Ensure base directory exists
         self.output_base = Path(settings.REPORT_OUTPUT_DIR)
-        for sub in ("csv", "json", "html", "pdf", "archive"):
-            (self.output_base / sub).mkdir(parents=True, exist_ok=True)
+        self.output_base.mkdir(parents=True, exist_ok=True)
 
 
     def compile_report_data(

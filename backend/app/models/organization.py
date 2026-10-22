@@ -42,7 +42,7 @@ class OrganizationMember(Base):
     )
     role: Mapped[str] = mapped_column(
         String(32), default="OWNER", index=True
-    )  # OWNER, ADMIN, FINOPS_MANAGER, ANALYST, VIEWER
+    )  # ADMIN, ANALYST, VIEWER, OWNER
     status: Mapped[str] = mapped_column(String(32), default="ACTIVE")  # ACTIVE, INVITED, SUSPENDED
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

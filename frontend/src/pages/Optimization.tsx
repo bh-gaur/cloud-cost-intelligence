@@ -24,7 +24,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const Optimization: React.FC = () => {
   const { activeOrg } = useAuth();
-  const canManage = activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN' || activeOrg?.role === 'FINOPS_MANAGER';
+  const canManage = activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN';
 
   const queryClient = useQueryClient();
   const { selectedAccount } = useDashboardContext();

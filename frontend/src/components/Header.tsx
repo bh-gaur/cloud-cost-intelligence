@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ThemeToggle } from './ThemeToggle';
-import { Sparkles, CheckCircle2, Building2, RefreshCw, Check } from 'lucide-react';
+import { Sparkles, CheckCircle2, Building2, RefreshCw, Check, LogOut } from 'lucide-react';
 import { User } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -24,11 +25,19 @@ export const Header: React.FC<HeaderProps> = ({
   onAccountChange,
   accounts = [],
 }) => {
-  const { organizations, activeOrgId, activeOrg, switchOrganization } = useAuth();
+  const { organizations, activeOrgId, activeOrg, switchOrganization, logout } = useAuth();
+  const navigate = useNavigate();
   const { currency, setCurrency, exchangeRate, isRateLive } = useCurrency();
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
+
+  const isDemoUser = user?.email === 'admin@cloudcost.local' || user?.email === 'user@cloudcost.local';
+
+  const handleExitDemo = () => {
+    logout();
+    navigate('/');
+  };
 
   const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newOrgId = e.target.value;
@@ -106,10 +115,23 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mode Status Indicator */}
         {isDemoMode ? (
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="font-medium text-[11px]">Demo Mode</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="font-medium text-[11px]">Demo Mode</span>
+            </span>
+            {isDemoUser && (
+              <button
+                type="button"
+                onClick={handleExitDemo}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-300 dark:text-amber-300 dark:bg-amber-950/40 dark:border-amber-700 dark:hover:bg-amber-900/50 rounded-md transition-colors cursor-pointer"
+                title="Exit demo session and return to Landing page"
+              >
+                <LogOut className="w-3 h-3" />
+                <span>Exit Demo</span>
+              </button>
+            )}
+          </div>
         ) : (
           <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

@@ -1,6 +1,6 @@
 """
 Optimization Engine Orchestrator
-Executes deep AWS resource scanners (EC2, EBS, RDS, S3, Networking) via STS AssumeRole
+Executes deep AWS resource scanners (EC2, EBS, RDS, S3) via STS AssumeRole
 and synchronizes actionable recommendations with remediation CLI snippets.
 """
 
@@ -13,42 +13,40 @@ from app.config.settings import settings
 from app.models.optimization import OptimizationRecommendation
 from app.models.account import AWSAccount
 from app.optimization.rules.base import BaseOptimizationRule, Recommendation
-from app.optimization.rules.ec2_idle import EC2IdleRule
-from app.optimization.rules.ec2_rightsizing import EC2RightsizingRule
 from app.optimization.rules.ebs_unused import EBSUnusedRule
-from app.optimization.rules.rds_rightsizing import RDSRightsizingRule
+from app.optimization.rules.ec2_idle import EC2IdleRule
+from app.optimization.rules.elastic_ip import ElasticIPRule
 from app.optimization.rules.s3_storage import S3StorageRule
-from app.optimization.rules.nat_gateway import NATGatewayRule
-from app.optimization.rules.cloudwatch import CloudWatchRetentionRule
-from app.optimization.rules.snapshots import SnapshotAgeRule
 from app.optimization.rules.tagging import TaggingComplianceRule
-from app.optimization.rules.savings_plans import SavingsPlansRule
-from app.optimization.rules.reserved_instances import ReservedInstancesRule
+from app.optimization.rules.snapshots import SnapshotAgeRule
 from app.providers.base import CloudProvider
 from app.scanners.base import ScanContext, ScanFinding
 from app.scanners.aws.ec2_scanner import EC2Scanner
 from app.scanners.aws.rds_scanner import RDSScanner
 from app.scanners.aws.s3_scanner import S3Scanner
-from app.scanners.aws.networking_scanner import NetworkingScanner
 
 logger = logging.getLogger(__name__)
+
+# Allowed rule IDs for live resource scanners matching the 6 core rules
+ALLOWED_SCANNER_RULE_IDS = {
+    "EBS-UNUSED",
+    "EC2-IDLE",
+    "EIP-UNATTACHED",
+    "S3-LIFECYCLE-MISSING",
+    "RDS-OLD-SNAPSHOT",
+}
 
 
 class OptimizationEngine:
     def __init__(self, provider: CloudProvider):
         self.provider = provider
         self.rules: List[BaseOptimizationRule] = [
-            EC2IdleRule(),
-            EC2RightsizingRule(),
             EBSUnusedRule(),
-            RDSRightsizingRule(),
+            EC2IdleRule(),
+            ElasticIPRule(),
             S3StorageRule(),
-            NATGatewayRule(),
-            CloudWatchRetentionRule(),
-            SnapshotAgeRule(),
             TaggingComplianceRule(),
-            SavingsPlansRule(),
-            ReservedInstancesRule(),
+            SnapshotAgeRule(),
         ]
 
     def run_all(
@@ -93,15 +91,15 @@ class OptimizationEngine:
                         EC2Scanner(context),
                         RDSScanner(context),
                         S3Scanner(context),
-                        NetworkingScanner(context),
                     ]
 
                     for scanner in scanners:
                         try:
                             findings = scanner.scan()
                             for f in findings:
-                                rec = self._upsert_finding(db, organization_id, acc.account_id, f)
-                                persisted_records.append(rec)
+                                if f.rule_id in ALLOWED_SCANNER_RULE_IDS:
+                                    rec = self._upsert_finding(db, organization_id, acc.account_id, f)
+                                    persisted_records.append(rec)
                         except Exception as e:
                             logger.error("Error executing scanner %s on account %s: %s", scanner.__class__.__name__, acc.account_id, e)
                 except Exception as e:
@@ -266,21 +264,17 @@ class OptimizationEngine:
         rid = r.resource_id
         reg = r.region or "us-east-1"
         rname = r.rule_name.lower()
-        if "EC2-001" in r.rule_id or "idle ec2" in rname or "ec2 idle" in rname:
+        if "EC2-001" in r.rule_id or "OPT-001" in r.rule_id or "idle ec2" in rname or "ec2 idle" in rname:
             return f"aws ec2 stop-instances --instance-ids {rid} --region {reg}"
-        if "EC2-002" in r.rule_id or "rightsizing" in rname:
-            return f"aws ec2 modify-instance-attribute --instance-id {rid} --instance-type t4g.medium --region {reg}"
-        if "EBS" in r.rule_id or "ebs" in rname or "volume" in rname:
+        if "EBS" in r.rule_id or "OPT-002" in r.rule_id or "OPT-003" in r.rule_id or "ebs" in rname or "volume" in rname:
             return f"aws ec2 create-snapshot --volume-id {rid} --description 'Backup before deletion' --region {reg} && aws ec2 delete-volume --volume-id {rid} --region {reg}"
-        if "RDS" in r.rule_id or "rds" in rname or "database" in rname:
-            return f"aws rds modify-db-instance --db-instance-identifier {rid} --db-instance-class db.t4g.medium --apply-immediately --region {reg}"
-        if "S3" in r.rule_id or "s3" in rname or "bucket" in rname:
-            return f"aws s3api put-bucket-lifecycle-configuration --bucket {rid} --lifecycle-configuration '{{\"Rules\":[{{\"ID\":\"IntelligentTiering\",\"Status\":\"Enabled\",\"Filter\":{{\"Prefix\":\"\"}},\"Transitions\":[{{\"Days\":30,\"StorageClass\":\"INTELLIGENT_TIERING\"}}]}}]}}'"
-        if "NAT" in r.rule_id or "nat gateway" in rname:
-            return f"aws ec2 delete-nat-gateway --nat-gateway-id {rid} --region {reg}"
-        if "CW" in r.rule_id or "cloudwatch" in rname:
-            return f"aws logs put-retention-policy --log-group-name {rid} --retention-in-days 30"
-        if "SNAP" in r.rule_id or "snapshot" in rname:
+        if "EIP" in r.rule_id or "OPT-003" in r.rule_id or "elastic ip" in rname or "eip" in rname:
+            return f"aws ec2 release-address --allocation-id {rid} --region {reg}"
+        if "S3" in r.rule_id or "OPT-004" in r.rule_id or "OPT-005" in r.rule_id or "s3" in rname or "bucket" in rname or "lifecycle" in rname:
+            return f"aws s3api put-bucket-lifecycle-configuration --bucket {rid} --lifecycle-configuration '{{\"Rules\":[{{\"ID\":\"LifecycleRule\",\"Status\":\"Enabled\",\"Filter\":{{\"Prefix\":\"\"}},\"Transitions\":[{{\"Days\":30,\"StorageClass\":\"INTELLIGENT_TIERING\"}}]}}]}}'"
+        if "TAG" in r.rule_id or "OPT-005" in r.rule_id or "OPT-009" in r.rule_id or "tag" in rname:
+            return f"aws ec2 create-tags --resources {rid} --tags Key=Environment,Value=Production Key=Team,Value=Engineering Key=Application=Core --region {reg}"
+        if "SNAP" in r.rule_id or "OPT-006" in r.rule_id or "OPT-008" in r.rule_id or "snapshot" in rname:
             return f"aws ec2 delete-snapshot --snapshot-id {rid} --region {reg}"
         return f"# Remediation for {r.rule_id} on {rid}\n# Action: {r.action_required}"
 

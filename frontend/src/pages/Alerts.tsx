@@ -47,6 +47,8 @@ export const Alerts: React.FC = () => {
   const [emailRecipients, setEmailRecipients] = useState('');
   const [integrationError, setIntegrationError] = useState<string | null>(null);
   const [integrationSuccess, setIntegrationSuccess] = useState<string | null>(null);
+  const [testingChannelId, setTestingChannelId] = useState<string | null>(null);
+  const [channelTestBanner, setChannelTestBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Fetch Notification Integrations
   const { data: integrationsResp, isLoading: isIntegrationsLoading } = useQuery({
@@ -81,15 +83,22 @@ export const Alerts: React.FC = () => {
 
   const testIntegrationMutation = useMutation({
     mutationFn: async (id: string) => {
+      setTestingChannelId(id);
+      setChannelTestBanner(null);
       const res = await apiClient.post(`/integrations/${id}/test`);
       return res.data;
     },
     onSuccess: (res) => {
-      alert(res.data?.message || 'Test notification sent successfully!');
+      setTestingChannelId(null);
+      const msg = res.data?.message || 'Test notification sent successfully!';
+      setChannelTestBanner({ type: 'success', message: msg });
       queryClient.invalidateQueries({ queryKey: ['notificationIntegrations'] });
+      setTimeout(() => setChannelTestBanner(null), 8000);
     },
     onError: (err: any) => {
-      alert(`Test notification failed: ${err.response?.data?.error?.message || err.message}`);
+      setTestingChannelId(null);
+      const msg = err.response?.data?.detail || err.response?.data?.error?.message || err.message || 'Test notification failed.';
+      setChannelTestBanner({ type: 'error', message: msg });
     },
   });
 
@@ -257,6 +266,31 @@ export const Alerts: React.FC = () => {
           )}
         </div>
 
+        {channelTestBanner && (
+          <div
+            className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
+              channelTestBanner.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {channelTestBanner.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              )}
+              <span className="font-medium">{channelTestBanner.message}</span>
+            </div>
+            <button
+              onClick={() => setChannelTestBanner(null)}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {isIntegrationsLoading ? (
           <LoadingSkeleton rows={2} />
         ) : integrations.length === 0 ? (
@@ -312,10 +346,19 @@ export const Alerts: React.FC = () => {
                   <button
                     onClick={() => testIntegrationMutation.mutate(item.id)}
                     disabled={testIntegrationMutation.isPending}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer disabled:opacity-50"
                   >
-                    <Send className="w-3 h-3" />
-                    Send Test
+                    {testingChannelId === item.id ? (
+                      <>
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3" />
+                        Send Test
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

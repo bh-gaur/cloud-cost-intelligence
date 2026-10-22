@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
   TableProperties,
@@ -24,8 +25,12 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ userRole = 'USER' }) => {
-  const isAdmin = userRole === 'ADMIN';
+  const { user, activeOrg, isAdmin: authIsAdmin, logout } = useAuth();
+  const isAdmin = authIsAdmin || userRole === 'ADMIN' || userRole === 'OWNER' || activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN';
+  const navigate = useNavigate();
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+
+  const isDemoUser = user?.email === 'admin@cloudcost.local' || user?.email === 'user@cloudcost.local';
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -53,7 +58,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole = 'USER' }) => {
   return (
     <aside className="sidebar-container w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen select-none transition-colors">
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 gap-3">
+      <div
+        onClick={() => {
+          if (isDemoUser) {
+            logout();
+          }
+          navigate('/');
+        }}
+        className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+        title="Return to Landing Page"
+      >
         <div className="p-2.5 bg-gradient-to-tr from-blue-600 to-sky-500 text-white rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center shrink-0">
           <Cloud className="w-5 h-5 text-white stroke-[2.25]" />
         </div>
@@ -120,25 +134,40 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole = 'USER' }) => {
 
       {/* Footer / Logout */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800">
-        <button
-          onClick={() => setShowSignOutConfirm(true)}
-          className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Sign Out</span>
-        </button>
+        {isDemoUser ? (
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 rounded-lg transition-colors cursor-pointer border border-amber-300 dark:border-amber-700"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Exit Demo (Return Home)</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowSignOutConfirm(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        )}
       </div>
 
-      <ConfirmModal
-        isOpen={showSignOutConfirm}
-        onClose={() => setShowSignOutConfirm(false)}
-        onConfirm={handleConfirmSignOut}
-        title="Sign Out Confirmation"
-        message="Are you sure you want to sign out of your FinOps active session?"
-        confirmText="Sign Out"
-        cancelText="Cancel"
-        variant="danger"
-      />
+      {!isDemoUser && (
+        <ConfirmModal
+          isOpen={showSignOutConfirm}
+          onClose={() => setShowSignOutConfirm(false)}
+          onConfirm={handleConfirmSignOut}
+          title="Sign Out Confirmation"
+          message="Are you sure you want to sign out of your FinOps active session?"
+          confirmText="Sign Out"
+          cancelText="Cancel"
+          variant="danger"
+        />
+      )}
     </aside>
   );
 };

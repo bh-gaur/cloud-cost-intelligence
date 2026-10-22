@@ -129,7 +129,7 @@ export const Settings: React.FC = () => {
               />
               <div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Webhook Broadcasts</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Dispatch alerts automatically to configured Slack/Teams channels.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Dispatch alerts automatically to configured Slack channels.</p>
               </div>
             </label>
           </div>

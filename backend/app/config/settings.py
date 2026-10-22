@@ -175,10 +175,14 @@ class Settings:
 
     @property
     def REPORT_OUTPUT_DIR(self) -> str:
-        return os.getenv(
-            "REPORT_OUTPUT_DIR",
-            str(Path(__file__).resolve().parent.parent.parent / "reports"),
-        )
+        env_val = os.getenv("REPORT_OUTPUT_DIR")
+        project_root = Path(__file__).resolve().parent.parent.parent.parent
+        if env_val:
+            p = Path(env_val)
+            if not p.is_absolute():
+                return str((project_root / env_val).resolve())
+            return str(p)
+        return str((project_root / "backend" / "reports").resolve())
 
 
 settings = Settings()

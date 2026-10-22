@@ -26,7 +26,7 @@ export const ForgotPassword: React.FC = () => {
       await authApi.forgotPassword(email);
       setSubmitted(true);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Unable to process request.');
+      setError(err.response?.data?.error?.message || err.response?.data?.detail || err.message || 'Unable to process request.');
     } finally {
       setLoading(false);
     }

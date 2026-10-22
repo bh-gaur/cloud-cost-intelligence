@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -7,6 +7,7 @@ export const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
+  const codeExchangedRef = useRef(false);
 
   useEffect(() => {
     const handleGoogleCallback = async () => {
@@ -17,6 +18,11 @@ export const AuthCallback: React.FC = () => {
         setError('No authorization code received from Google OAuth.');
         return;
       }
+
+      if (codeExchangedRef.current) {
+        return;
+      }
+      codeExchangedRef.current = true;
 
       try {
         const res = await authApi.googleAuth({

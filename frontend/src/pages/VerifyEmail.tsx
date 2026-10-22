@@ -40,7 +40,7 @@ export const VerifyEmail: React.FC = () => {
         navigate('/login?message=Email verified successfully! You may now sign in.');
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Invalid or expired email verification token.');
+      setError(err.response?.data?.error?.message || err.response?.data?.detail || err.message || 'Invalid or expired email verification token.');
     } finally {
       setVerifying(false);
     }

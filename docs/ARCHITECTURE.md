@@ -52,13 +52,11 @@ flowchart TB
 
     subgraph StorageLayer ["Persistence & File Storage"]
         PostgresDB[(PostgreSQL 16 DB / NUMERIC 18,4)]
-        ReportStore[("Local Report Storage (CSV/JSON/HTML)")]
+        ReportStore[("Tenant-Isolated Report Storage (CSV/PDF)")]
     end
 
     subgraph Channels ["External Alert Channels"]
         SlackHook["Slack Block Kit"]
-        TeamsHook["MS Teams Adaptive Cards"]
-        GChatHook["Google Chat Webhook"]
         EmailSMTP["SMTP Mail Server"]
     end
 
@@ -126,25 +124,20 @@ flowchart LR
     end
 
     subgraph Rules ["Modular FinOps Rules"]
-        R1["EC2 Idle Rule"]
-        R2["EC2 Rightsizing Rule"]
-        R3["EBS Unused Rule"]
-        R4["RDS Rightsizing Rule"]
-        R5["S3 Storage Tiering Rule"]
-        R6["NAT Gateway Optimizer"]
-        R7["CloudWatch Retention Rule"]
-        R8["Orphaned Snapshot Rule"]
-        R9["Tagging Compliance Rule"]
-        R10["Savings Plans Analyzer"]
-        R11["Reserved Instances Analyzer"]
+        R1["EC2 Idle Instances"]
+        R2["Unattached EBS Volumes"]
+        R3["Unassociated Elastic IPs"]
+        R4["S3 Without Lifecycle Policies"]
+        R5["Untagged Resource Compliance"]
+        R6["Orphaned Snapshots (>90d)"]
     end
 
     subgraph Output ["Standardized FinOps Recommendation"]
         Model["Rule ID<br/>Resource ARN<br/>Service & Region<br/>Current Cost (Decimal)<br/>Estimated Monthly Savings<br/>Estimated Annual Savings<br/>Confidence (Observed/Estimated/Potential)<br/>Status (Requires validation / Insufficient data)<br/>Remediation Steps"]
     end
 
-    Runner --> R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 & R10 & R11
-    R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 & R10 & R11 --> Model
+    Runner --> R1 & R2 & R3 & R4 & R5 & R6
+    R1 & R2 & R3 & R4 & R5 & R6 --> Model
 ```
 
 ---
@@ -160,19 +153,13 @@ flowchart TD
 
     subgraph Providers ["Notification Provider Implementations"]
         P_Slack["Slack Provider (Block Kit)"]
-        P_Teams["Teams Provider (Adaptive Cards)"]
-        P_GChat["Google Chat Provider (Cards v2)"]
         P_Email["Email Provider (SMTP + Attachment)"]
     end
 
     Dispatcher --> P_Slack
-    Dispatcher --> P_Teams
-    Dispatcher --> P_GChat
     Dispatcher --> P_Email
 
     P_Slack --> |POST Webhook| SlackAPI["Slack Workspace"]
-    P_Teams --> |POST Webhook| TeamsAPI["Microsoft 365 Tenant"]
-    P_GChat --> |POST Webhook| GChatAPI["Google Workspace Space"]
     P_Email --> |SMTP TLS| MailServer["Corporate Mail Server"]
 ```
 
@@ -189,7 +176,7 @@ flowchart TD
 
     subgraph TenantGuard ["Tenant Context Dependency (get_tenant_context)"]
         Verify["Validate Organization Membership (DB Check)"]
-        RoleCheck["Extract Tenant Role (OWNER / ADMIN / FINOPS_MANAGER / ANALYST / VIEWER)"]
+        RoleCheck["Extract Tenant Role (ADMIN / ANALYST / VIEWER)"]
     end
 
     subgraph DataIsolation ["Tenant-Isolated Resources"]
@@ -210,9 +197,9 @@ flowchart TD
 
 1. **Decoupled Provider Interface**: The core application logic does not contain `import boto3` directly. All AWS SDK interactions occur strictly inside `app/providers/aws/`.
 2. **Server-Enforced Multi-Tenancy**: Every authenticated request passes through `get_tenant_context` which validates active membership in `organization_members`. Requests without authorized tenant membership return `403 Forbidden`. Frontend-supplied tenant IDs are never trusted without DB validation.
-3. **Centralized RBAC & Permission Matrix**: Organization access is governed by 5 distinct roles (`OWNER`, `ADMIN`, `FINOPS_MANAGER`, `ANALYST`, `VIEWER`). Granular permissions are declared in `app/auth/permissions.py` and enforced via `RequirePermission(PERM_NAME)` dependency guards.
+3. **Centralized RBAC & Permission Matrix**: Organization access is governed by 4 distinct roles (`OWNER`, `ADMIN`, `ANALYST`, `VIEWER`). Granular permissions are declared in `app/auth/permissions.py` and enforced via `RequirePermission(PERM_NAME)` dependency guards.
 4. **Session Management & Token Revocation**: Active user sessions are tracked in `user_sessions` with device and IP metadata. Refresh tokens are hashed in DB (SHA-256) and support instantaneous single-session (`DELETE /auth/sessions/{id}`) or global session revocation (`POST /auth/logout-all`).
-5. **Owner & Role Escalation Protection**: The system prevents demoting or removing the last organization `OWNER`. Users cannot escalate their own privileges or grant roles exceeding their own role level.
+5. **Role Escalation Protection**: Users cannot escalate their own privileges or grant roles exceeding their own role level.
 6. **Zero-Trust Report Downloads & Path Traversal Prevention**: Download endpoints validate tenant ownership (`organization_id`), verify file existence within sanitized `output_base` boundaries (`resolve_safe_file_path`), and stream files safely to prevent cross-tenant data leakage or directory traversal.
 7. **Financial Precision**: No binary floating-point types (`float`) are permitted for currency values in database tables or financial operations. All calculations use Python `decimal.Decimal` and PostgreSQL `NUMERIC(18, 4)`.
 8. **Defensive HTTP Security & Hardened CORS**: FastAPI middleware enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, and `Strict-Transport-Security (HSTS)`. CORS methods and headers are explicitly whitelisted.
@@ -223,28 +210,28 @@ flowchart TD
 
 ## 7. Security Permission Matrix
 
-| Capability | OWNER | ADMIN | FINOPS_MANAGER | ANALYST | VIEWER |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **organization.read** | YES | YES | YES | YES | YES |
-| **organization.update** | YES | YES | NO | NO | NO |
-| **members.read** | YES | YES | YES | YES | YES |
-| **members.invite** | YES | YES* | NO | NO | NO |
-| **members.update** | YES | YES* | NO | NO | NO |
-| **members.remove** | YES | YES* | NO | NO | NO |
-| **aws_accounts.read** | YES | YES | YES | YES | YES |
-| **aws_accounts.manage** | YES | YES | NO | NO | NO |
-| **costs.read** | YES | YES | YES | YES | YES |
-| **costs.export** | YES | YES | YES | YES | NO |
-| **reports.read** | YES | YES | YES | YES | YES |
-| **reports.create** | YES | YES | YES | YES | NO |
-| **reports.download** | YES | YES | YES | YES | NO |
-| **reports.delete** | YES | YES | NO | NO | NO |
-| **optimization.read** | YES | YES | YES | YES | YES |
-| **optimization.manage** | YES | YES | YES | NO | NO |
-| **alerts.read / budgets.read** | YES | YES | YES | YES | YES |
-| **alerts.manage / budgets.manage** | YES | YES | YES | NO | NO |
-| **integrations.manage** | YES | YES | NO | NO | NO |
-| **settings.update** | YES | YES | NO | NO | NO |
+| Capability | OWNER | ADMIN | ANALYST | VIEWER |
+| :--- | :---: | :---: | :---: | :---: |
+| **organization.read** | YES | YES | YES | YES |
+| **organization.update** | YES | YES | NO | NO |
+| **members.read** | YES | YES | YES | YES |
+| **members.invite** | YES | YES | NO | NO |
+| **members.update** | YES | YES | NO | NO |
+| **members.remove** | YES | YES | NO | NO |
+| **aws_accounts.read** | YES | YES | YES | YES |
+| **aws_accounts.manage** | YES | YES | NO | NO |
+| **costs.read** | YES | YES | YES | YES |
+| **costs.export** | YES | YES | YES | NO |
+| **reports.read** | YES | YES | YES | YES |
+| **reports.create** | YES | YES | YES | NO |
+| **reports.download** | YES | YES | YES | YES |
+| **reports.delete** | YES | YES | NO | NO |
+| **optimization.read** | YES | YES | YES | YES |
+| **optimization.manage** | YES | YES | NO | NO |
+| **alerts.read / budgets.read** | YES | YES | YES | YES |
+| **alerts.manage / budgets.manage** | YES | YES | NO | NO |
+| **integrations.manage** | YES | YES | NO | NO |
+| **settings.update** | YES | YES | NO | NO |
 
 *\*Role escalation protection prevents ADMIN from inviting or promoting users to OWNER role. The last organization OWNER cannot be removed or demoted.*
 

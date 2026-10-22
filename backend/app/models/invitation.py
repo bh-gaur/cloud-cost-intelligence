@@ -17,7 +17,7 @@ class OrganizationInvitation(Base):
         String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
     )
     email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    role: Mapped[str] = mapped_column(String(32), default="ANALYST")  # OWNER, ADMIN, FINOPS_MANAGER, ANALYST, VIEWER
+    role: Mapped[str] = mapped_column(String(32), default="ANALYST")  # ADMIN, ANALYST, VIEWER
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(32), default="PENDING")  # PENDING, ACCEPTED, EXPIRED, REVOKED
     invited_by_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False)

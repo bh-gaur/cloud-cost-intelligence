@@ -7,6 +7,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database.session import get_db
 from app.models.user import User, Role
@@ -100,10 +101,12 @@ def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
             detail="A user with this email already exists.",
         )
 
-    role_name = req.role_name.upper()
-    role = db.query(Role).filter(Role.name == role_name).first()
+    # System platform role is strictly USER for public registrations.
+    # Tenant administration is governed via OrganizationMember.role = "OWNER".
+    platform_role_name = "USER"
+    role = db.query(Role).filter(Role.name == platform_role_name).first()
     if not role:
-        role = Role(name=role_name, description=f"{role_name} Role")
+        role = Role(name=platform_role_name, description="Standard Platform User")
         db.add(role)
         db.commit()
         db.refresh(role)
@@ -564,45 +567,56 @@ def google_auth(req: GoogleAuthRequest, request: Request, db: Session = Depends(
             status="ACTIVE",
             email_verified=True,
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-
-        # Explicit demo auth falls back to demo_org
-        demo_org = None
-        if is_demo_auth and settings.DEMO_MODE:
-            demo_org = db.query(Organization).filter(Organization.slug == "demo-finops-enterprise").first()
-
-        if demo_org:
-            m = OrganizationMember(
-                organization_id=demo_org.id,
-                user_id=user.id,
-                role="ADMIN",
-                status="ACTIVE",
-            )
-            db.add(m)
+        try:
+            db.add(user)
             db.commit()
-        else:
-            # Create brand-new personal organization for the newly registered Google user
-            slug_base = re.sub(r"[^a-z0-9]", "-", email.split("@")[0].lower())[:40]
-            slug = f"{slug_base}-{str(user.id)[:6]}"
-            org = Organization(
-                name=f"{full_name}'s Organization",
-                slug=slug,
-                status="ACTIVE",
-            )
-            db.add(org)
-            db.commit()
-            db.refresh(org)
+            db.refresh(user)
 
-            m = OrganizationMember(
-                organization_id=org.id,
-                user_id=user.id,
-                role="OWNER",
-                status="ACTIVE",
-            )
-            db.add(m)
-            db.commit()
+            # Explicit demo auth falls back to demo_org
+            demo_org = None
+            if is_demo_auth and settings.DEMO_MODE:
+                demo_org = db.query(Organization).filter(Organization.slug == "demo-finops-enterprise").first()
+
+            if demo_org:
+                m = OrganizationMember(
+                    organization_id=demo_org.id,
+                    user_id=user.id,
+                    role="ADMIN",
+                    status="ACTIVE",
+                )
+                db.add(m)
+                db.commit()
+            else:
+                # Create brand-new personal organization for the newly registered Google user
+                slug_base = re.sub(r"[^a-z0-9]", "-", email.split("@")[0].lower())[:40]
+                slug = f"{slug_base}-{str(user.id)[:6]}"
+                org = Organization(
+                    name=f"{full_name}'s Organization",
+                    slug=slug,
+                    status="ACTIVE",
+                )
+                db.add(org)
+                db.commit()
+                db.refresh(org)
+
+                m = OrganizationMember(
+                    organization_id=org.id,
+                    user_id=user.id,
+                    role="OWNER",
+                    status="ACTIVE",
+                )
+                db.add(m)
+                db.commit()
+        except IntegrityError:
+            db.rollback()
+            # If concurrent request already inserted the user
+            user = None
+            if google_id:
+                user = db.query(User).filter(User.google_id == google_id).first()
+            if not user:
+                user = db.query(User).filter(User.email.ilike(email)).first()
+            if not user:
+                raise
     else:
         if google_id:
             user.google_id = google_id

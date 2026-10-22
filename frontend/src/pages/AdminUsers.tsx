@@ -24,8 +24,8 @@ import { ConfirmModal } from '../components/ConfirmModal';
 import type { User, OrganizationMember, OrganizationInvitation, TenantRole } from '../types';
 
 export const AdminUsers: React.FC = () => {
-  const { activeOrgId, activeOrg, refetchOrganizations } = useAuth();
-  const canManageMembers = activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN' || activeOrg?.role === 'FINOPS_MANAGER';
+  const { activeOrgId, activeOrg, user, refetchOrganizations } = useAuth();
+  const canManageMembers = activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN';
 
   const [activeTab, setActiveTab] = useState<'members' | 'invitations' | 'all'>('members');
 
@@ -370,29 +370,26 @@ export const AdminUsers: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3">
-                        {canManageMembers && m.role !== 'OWNER' ? (
+                        {canManageMembers && m.role !== 'OWNER' && m.user_id !== user?.id ? (
                           <select
                             value={m.role}
                             disabled={updatingMemberId === m.id}
                             onChange={(e) => handleRoleChange(m.id, e.target.value as TenantRole)}
                             className="px-2 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
                           >
-                            {(activeOrg?.role === 'OWNER' || activeOrg?.role === 'ADMIN') && (
-                              <option value="ADMIN">ADMIN</option>
-                            )}
-                            <option value="FINOPS_MANAGER">FINOPS_MANAGER</option>
+                            <option value="ADMIN">ADMIN</option>
                             <option value="ANALYST">ANALYST</option>
                             <option value="VIEWER">VIEWER</option>
                           </select>
                         ) : (
                           <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider border ${
-                            m.role === 'OWNER'
-                              ? 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 font-bold'
-                              : m.role === 'ADMIN'
-                              ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-semibold'
+                            (m.role === 'ADMIN' || m.role === 'OWNER')
+                              ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200 dark:border-purple-800 font-bold'
+                              : m.role === 'ANALYST'
+                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800 font-semibold'
                               : 'bg-slate-50 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400 border-slate-200 dark:border-slate-800'
                           }`}>
-                            {m.role}
+                            {m.role === 'OWNER' ? 'ADMIN' : m.role}
                           </span>
                         )}
                       </td>
@@ -405,7 +402,7 @@ export const AdminUsers: React.FC = () => {
                         {m.created_at || m.joined_at ? new Date(m.created_at || m.joined_at || '').toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        {canManageMembers && m.role !== 'OWNER' && (
+                        {canManageMembers && m.role !== 'OWNER' && m.user_id !== user?.id && (
                           <button
                             onClick={() => setMemberToDelete(m)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
@@ -476,8 +473,14 @@ export const AdminUsers: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                            {inv.role}
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                            (inv.role === 'ADMIN' || inv.role === 'OWNER')
+                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+                              : inv.role === 'ANALYST'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                              : 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                          }`}>
+                            {inv.role === 'OWNER' ? 'ADMIN' : inv.role}
                           </span>
                         </td>
                         <td className="px-5 py-3">
@@ -695,7 +698,6 @@ export const AdminUsers: React.FC = () => {
                     className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="ADMIN">ADMIN (Full Admin Access)</option>
-                    <option value="FINOPS_MANAGER">FINOPS_MANAGER (Manage Costs & Alerts)</option>
                     <option value="ANALYST">ANALYST (Standard FinOps Access)</option>
                     <option value="VIEWER">VIEWER (Read-Only Access)</option>
                   </select>

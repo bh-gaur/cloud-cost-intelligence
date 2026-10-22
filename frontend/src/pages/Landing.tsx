@@ -28,7 +28,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout, isAuthenticated, user } = useAuth();
   const [demoLoading, setDemoLoading] = useState(false);
 
   // Always reset scroll to the very top on reload / page entry
@@ -126,27 +126,49 @@ export const Landing: React.FC = () => {
           {/* Actions */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <button
-              onClick={() => navigate('/login')}
-              className="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white px-4 py-2 transition-colors"
-            >
-              Sign In
-            </button>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={handleDemoAccess}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-md transition-all cursor-pointer"
-            >
-              {demoLoading ? (
-                <div className="w-4 h-4 border-2 border-white dark:!border-zinc-950 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Explore Demo</span>
-                  <ArrowRight className="w-4 h-4 text-white dark:!text-zinc-950" />
-                </>
-              )}
-            </motion.button>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="text-xs font-bold text-slate-800 dark:text-zinc-200 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 transition-colors cursor-pointer"
+                >
+                  <span>{user?.email === 'admin@cloudcost.local' ? 'Exit Demo' : 'Sign Out'}</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white px-4 py-2 transition-colors"
+                >
+                  Sign In
+                </button>
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={handleDemoAccess}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 border border-slate-900 dark:!text-zinc-950 dark:!bg-white dark:hover:!bg-zinc-100 dark:!border-white shadow-md transition-all cursor-pointer"
+                >
+                  {demoLoading ? (
+                    <div className="w-4 h-4 border-2 border-white dark:!border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Explore Demo</span>
+                      <ArrowRight className="w-4 h-4 text-white dark:!text-zinc-950" />
+                    </>
+                  )}
+                </motion.button>
+              </>
+            )}
           </div>
         </div>
       </motion.header>
@@ -493,7 +515,7 @@ export const Landing: React.FC = () => {
             {
               icon: <Building2 className="w-6 h-6" />,
               title: "Enterprise Multi-Tenancy & RBAC",
-              description: "Isolated organization boundaries, granular role permissions (OWNER, ADMIN, ANALYST), secure member invitations, and audit logs."
+              description: "Isolated organization boundaries, granular role permissions (ADMIN, ANALYST, VIEWER), secure member invitations, and audit logs."
             },
             {
               icon: <Globe2 className="w-6 h-6" />,
@@ -652,7 +674,7 @@ export const Landing: React.FC = () => {
             <ShieldCheck className="w-8 h-8 text-slate-700 dark:text-zinc-300 mb-4" />
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-2">Role-Based Access Control</h4>
             <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Strict RBAC enforcement for OWNER, ADMIN, and USER roles with audit logging of administrative events and member role transitions.
+              Strict RBAC enforcement for ADMIN, ANALYST, and VIEWER roles with audit logging of administrative events and member role transitions.
             </p>
           </div>
         </div>

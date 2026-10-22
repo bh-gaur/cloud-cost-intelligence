@@ -78,35 +78,30 @@ AWS_REGION=us-east-1
 DEMO_MODE=false
 
 # SMTP Email Notification Settings (Manual Setup)
-SMTP_HOST=smtp.sendgrid.net
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=apikey
-SMTP_PASSWORD=your_sendgrid_api_key
-SMTP_FROM_EMAIL=finops-alerts@yourdomain.com
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+SMTP_FROM="AWS Cost Intelligence <your_email@gmail.com>"
+EMAIL_RECIPIENTS="finops-alerts@yourdomain.com"
 
-# Outbound Webhook Integrations (Manual Setup)
+# Outbound Slack Webhook Integration (Manual Setup)
 SLACK_WEBHOOK_URL=""
-GOOGLE_CHAT_WEBHOOK_URL=""
-TEAMS_WEBHOOK_URL=""
 ```
 
 ---
 
-### 3. Outbound Notification Webhooks Setup
+### 3. Outbound Notification Channels Setup
 
 #### A. Slack Incoming Webhook
-1. Go to `https://api.slack.com/apps` -> Create New App.
+1. Go to `https://api.slack.com/apps` -> **Create New App**.
 2. Enable **Incoming Webhooks**.
 3. Click **Add New Webhook to Workspace**, select your alerts channel (e.g. `#finops-alerts`), and copy the Webhook URL.
 4. Add to `.env` as `SLACK_WEBHOOK_URL` or configure under **Integrations** in the app UI.
 
-#### B. Google Chat Webhook
-1. Open Google Chat space -> Space settings -> **Apps & Integrations**.
-2. Click **Manage Webhooks** -> **Add Webhook**.
-3. Name it `AWS Cost Intelligence` and copy the URL.
-4. Add to `.env` as `GOOGLE_CHAT_WEBHOOK_URL`.
+#### B. SMTP Email Configuration
+1. Obtain SMTP credentials from your email provider (e.g. Gmail App Password, AWS SES SMTP credentials, SendGrid, or Mailtrap).
+2. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `EMAIL_RECIPIENTS` in `.env`.
 
-#### C. Microsoft Teams Incoming Webhook
-1. Open Microsoft Teams channel -> **Connectors** -> **Incoming Webhook**.
-2. Configure name and copy the webhook URL.
-3. Add to `.env` as `TEAMS_WEBHOOK_URL`.
+> For complete step-by-step instructions, Gmail/SES/Mailtrap configurations, CLI test scripts, and curl examples, see:
+> [Notification Setup and Testing Guide](file:///Users/vishnu/learning/b_github/cloud-cost-intelligence/docs/NOTIFICATION_SETUP_AND_TESTING.md)

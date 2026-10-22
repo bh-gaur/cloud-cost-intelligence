@@ -12,7 +12,7 @@ class UserRegisterRequest(BaseModel):
     password: str = Field(min_length=8)
     full_name: Optional[str] = None
     org_name: Optional[str] = None
-    role_name: str = "ADMIN"  # USER or ADMIN
+    role_name: Optional[str] = "USER"
 
 
 class UserLoginRequest(BaseModel):

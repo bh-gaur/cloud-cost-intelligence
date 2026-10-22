@@ -24,9 +24,9 @@ Welcome, AI agent or human engineer! This document establishes mandatory convent
 5. **Strict Server-Side Authorization & Multi-Tenancy**:
    - NEVER trust frontend-supplied `organization_id`, `role`, or permissions.
    - All protected endpoints MUST evaluate `TenantContext` (`get_tenant_context`) and check server-side permissions (`RequirePermission(PERM_NAME)`).
-   - Enforce 5 organization roles: `OWNER`, `ADMIN`, `FINOPS_MANAGER`, `ANALYST`, `VIEWER`.
+   - Enforce 3 organization roles: `ADMIN`, `ANALYST`, `VIEWER`.
    - Protect against IDOR by checking resource organization ownership (`resource.organization_id == tenant_ctx.organization_id`).
-   - Enforce Owner Protection (prevent removing last `OWNER`) and Role Escalation Protection (prevent self-escalation or promoting users above caller's role level).
+   - Enforce Role Escalation Protection (prevent self-escalation or promoting users above caller's role level).
 6. **Multi-Currency Telemetry & Live Exchange Rates**:
    - `CurrencyContext` (`frontend/src/context/CurrencyContext.tsx`) manages active user currency (`USD` vs `INR`).
    - Fetches live USD/INR exchange rates from `https://open.er-api.com/v6/latest/USD`, with caching in `localStorage` and fallback rate `83.5`.

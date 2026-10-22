@@ -377,7 +377,16 @@ class CostService:
         total_count = q.count()
 
         # Sorting
-        sort_col = getattr(CostRecord, params.sort_by, CostRecord.date)
+        allowed_sort_fields = {
+            "date": CostRecord.date,
+            "cost": CostRecord.cost,
+            "service": CostRecord.service,
+            "account_name": CostRecord.account_name,
+            "region": CostRecord.region,
+            "service_category": CostRecord.service_category,
+            "resource_id": CostRecord.resource_id,
+        }
+        sort_col = allowed_sort_fields.get(str(params.sort_by).lower(), CostRecord.date)
         if params.sort_order.lower() == "asc":
             q = q.order_by(asc(sort_col))
         else:

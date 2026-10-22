@@ -18,7 +18,7 @@ from app.models.user import User, Role
 from app.models.organization import Organization, OrganizationMember
 from app.models.report import Report
 from app.auth.security import hash_password, create_access_token
-from app.auth.permissions import ROLE_OWNER, ROLE_ADMIN, ROLE_FINOPS_MANAGER, ROLE_ANALYST, ROLE_VIEWER
+from app.auth.permissions import ROLE_OWNER, ROLE_ADMIN, ROLE_ANALYST, ROLE_VIEWER
 
 client = TestClient(app)
 
@@ -323,7 +323,7 @@ def test_accept_invite_and_register_new_user(client, security_test_data):
     invite_resp = client.post(
         f"/api/v1/organizations/{security_test_data['org_alpha'].id}/members/invite",
         headers=headers,
-        json={"email": "newjoiner@company.com", "role": "FINOPS_MANAGER"},
+        json={"email": "newjoiner@company.com", "role": "ANALYST"},
     )
     assert invite_resp.status_code == 200
     token = invite_resp.json()["data"]["invitation_link"].split("token=")[-1]
@@ -345,11 +345,97 @@ def test_accept_invite_and_register_new_user(client, security_test_data):
     assert reg_resp.status_code == 200
     reg_data = reg_resp.json()["data"]
     assert "access_token" in reg_data
-    assert reg_data["role"] == "FINOPS_MANAGER"
+    assert reg_data["role"] == "ANALYST"
     assert reg_data["user"]["email"] == "newjoiner@company.com"
 
     # Verify user details now show user_exists is True
     details_after = client.get(f"/api/v1/auth/invite-details?token={token}")
     assert details_after.json()["data"]["status"] == "ACCEPTED"
+
+
+def test_public_registration_role_escalation_prevention(client, db_session):
+    """Verifies that public registration assigns platform role USER and prevents privilege escalation to SUPERADMIN."""
+    reg_resp = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "hacker_escalation@test.local",
+            "password": "SuperSecurePassword123!",
+            "full_name": "Priv Escalation Attacker",
+            "role_name": "ADMIN",  # Attacker attempts to become platform superadmin
+        },
+    )
+    assert reg_resp.status_code == 200
+    user_data = reg_resp.json()["data"]
+    # Platform role must be USER, not ADMIN
+    assert user_data["role"] == "USER"
+
+    # Login and verify platform admin endpoints reject this user
+    login_resp = client.post(
+        "/api/v1/auth/login",
+        json={"email": "hacker_escalation@test.local", "password": "SuperSecurePassword123!"},
+    )
+    assert login_resp.status_code == 200
+    token = login_resp.json()["data"]["access_token"]
+    user_headers = {"Authorization": f"Bearer {token}"}
+
+    # Should be rejected from superadmin platform user management
+    admin_resp = client.get("/api/v1/admin/users", headers=user_headers)
+    assert admin_resp.status_code == 403
+
+
+def test_tenant_admin_can_test_aws_and_notifications(client, security_test_data):
+    """Verifies that tenant admins with platform USER role can test AWS connections and notifications via tenant permissions."""
+    # Create token for org owner with platform role USER
+    user_token = create_access_token(subject=security_test_data["alpha_owner"].id, role="USER")
+    headers = {
+        "Authorization": f"Bearer {user_token}",
+        "X-Organization-ID": security_test_data["org_alpha"].id,
+    }
+
+    # Test AWS connection endpoint
+    aws_test_resp = client.post(
+        "/api/v1/aws/test-connection",
+        headers=headers,
+        json={
+            "account_id": "123456789012",
+            "role_arn": "arn:aws:iam::123456789012:role/CostIntelligenceRole",
+            "external_id": "ext-test-1234",
+            "region": "us-east-1",
+        },
+    )
+    # Must not be 403 Forbidden
+    assert aws_test_resp.status_code in (200, 400)
+    assert aws_test_resp.status_code != 403
+
+    # Test notifications endpoint
+    notif_test_resp = client.post(
+        "/api/v1/notifications/test",
+        headers=headers,
+        json={
+            "channel_type": "email",
+            "recipient_email": "test@example.com",
+        },
+    )
+    # Must not be 403 Forbidden
+    assert notif_test_resp.status_code in (200, 400)
+    assert notif_test_resp.status_code != 403
+
+
+def test_cost_records_safe_sorting(client, security_test_data):
+    """Verifies that invalid or arbitrary sort_by attributes fall back safely without raising 500 errors."""
+    token = create_access_token(subject=security_test_data["alpha_owner"].id, role="USER")
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "X-Organization-ID": security_test_data["org_alpha"].id,
+    }
+
+    # Request with arbitrary/malicious attribute name
+    resp = client.get(
+        "/api/v1/costs?sort_by=non_existent_column&sort_order=asc",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
 
 

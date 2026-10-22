@@ -112,11 +112,9 @@ To protect against the Confused Deputy problem in multi-tenant environments:
   - Access Token: short-lived (60 minutes).
   - Refresh Token: rotation with 7-day expiration.
 - **Role-Based Access Control (RBAC)**:
-  - `OWNER`: Complete control over organization, members, AWS account connection/deletion, notification channels, and tenant settings.
-  - `ADMIN`: Full management access to members, invitations, AWS accounts, alert channels, cost exports, and audit logs.
-  - `FINOPS_MANAGER`: Management access to cost optimization scans, alert rules creation, report creation/downloads, cost exports, and member role management (up to manager level), with role escalation protections preventing assignment of `ADMIN` or `OWNER` roles.
-  - `ANALYST`: Access to dashboards, cost tables, report generation & downloads, and cost exports. Restricted from deletion and account connection.
-  - `VIEWER`: Strict read-only access across dashboards, cost exploration, and recommendations. Restricted from creating/deleting AWS accounts, alert rules, notification channels, reports, or members.
+  - `ADMIN`: Full management access to organization settings, members, invitations, AWS accounts, alert channels, reports, cost exports, optimization scans, and integrations.
+  - `ANALYST`: Access to dashboards, cost tables, report generation & downloads, and cost exports. Restricted from deletion, member management, and account connection.
+  - `VIEWER`: Strict read-only access across dashboards, cost exploration, reports, and recommendations. Restricted from creating or modifying AWS accounts, alert rules, notification channels, reports, or members.
 
 ---
 

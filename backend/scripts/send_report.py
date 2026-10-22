@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 send_report.py
-CLI tool to dispatch generated cost reports and KPI summaries to Slack, Teams, GChat, or Email.
+CLI tool to dispatch generated cost reports and KPI summaries to Slack or Email.
 
 Usage:
     python send_report.py --channel slack --dry-run
@@ -25,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description="Dispatch cost reports to notification channels.")
     parser.add_argument(
         "--channel",
-        choices=["email", "slack", "teams", "google_chat", "all"],
+        choices=["email", "slack", "all"],
         default="slack",
     )
     parser.add_argument("--report-file", default=None, help="Optional path to report attachment")

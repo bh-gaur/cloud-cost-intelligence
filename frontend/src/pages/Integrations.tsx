@@ -221,12 +221,10 @@ export const Integrations: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {[
             { id: 'email', name: 'Email / SMTP', desc: 'Alert notifications via authenticated SMTP or Amazon SES.' },
             { id: 'slack', name: 'Slack Webhook', desc: 'Interactive Block Kit cost alerts dispatched to #finops-alerts.' },
-            { id: 'teams', name: 'Microsoft Teams', desc: 'Adaptive Card notifications for executive engineering channels.' },
-            { id: 'google_chat', name: 'Google Chat', desc: 'Structured JSON Card v2 notifications for Google Workspace.' },
           ].map((channel) => (
             <div
               key={channel.id}

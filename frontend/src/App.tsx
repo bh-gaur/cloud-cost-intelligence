@@ -88,24 +88,27 @@ const StartupMotionLoader: React.FC = () => (
 );
 
 const RootRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return <StartupMotionLoader />;
   }
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
+  // Always allow viewing the Landing page from root /
   return <Landing />;
 };
 
 const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
 
   if (isLoading) {
     return <StartupMotionLoader />;
+  }
+
+  // If a demo user visits /login or /register, seamlessly exit demo mode so they can sign in or register
+  if (isAuthenticated && (user?.email === 'admin@cloudcost.local' || user?.email === 'user@cloudcost.local')) {
+    logout();
+    return <>{children}</>;
   }
 
   if (isAuthenticated) {
@@ -124,6 +127,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boole
   if (isLoading) {
     return <StartupMotionLoader />;
   }
+
+  
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -145,6 +150,7 @@ export const App: React.FC = () => {
             <Routes>
               {/* Landing / About & Auth Routes */}
               <Route path="/" element={<RootRoute />} />
+              <Route path="/landing" element={<Landing />} />
               <Route path="/about" element={<Landing />} />
               <Route
                 path="/login"

@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 class ReportGenerateRequest(BaseModel):
     name: Optional[str] = None
-    format: str = "html"  # csv, json, html, pdf
+    format: str = "pdf"  # csv, pdf
     start_date: date
     end_date: date
     account_id: str = "all"
